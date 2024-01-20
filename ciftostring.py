@@ -52,7 +52,3 @@ class CifToString:
         a, b, c, alpha, beta, gamma = self.get_parameters(n)
         elements = self.get_coords("fractional", n)
         return a, b, c, alpha, beta, gamma, *elements
-
-s1 = "N2.cif"
-N2 = CifToString.from_file(s1)
-print(N2.get_cif_string())
