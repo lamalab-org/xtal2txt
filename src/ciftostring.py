@@ -37,7 +37,7 @@ class CifToString:
         return cls(structure)
 
 
-    def get_cif_string(self, n=3):
+    def get_cif_string(self, n: int = 3):
         """
         Return the contents of a CIF file as a multi-line string with...
         removing the first line of the file.
@@ -63,7 +63,7 @@ class CifToString:
         return new_string
 
     
-    def get_parameters(self, n=3):
+    def get_parameters(self, n: int = 3):
         """
         Returning 6 lattice parameters of unit cells in a crystal lattice: the lengths of the cell edges (a, b, and c) in angstrom and the angles between them (alpha, beta, and gamma) in degrees.
 
@@ -79,7 +79,7 @@ class CifToString:
         return [str(round(i, n)) for i in self.structure.lattice.parameters]
 
 
-    def get_coords(self, name, n=3):
+    def get_coords(self, name: str, n: int = 3):
         """
         Returning the particles inside unit cells for a crystal lattice along with their positions...
         that can be described in cartesian or fractional coordinates.
@@ -105,7 +105,7 @@ class CifToString:
         return elements
 
 
-    def get_cartesian(self, n=3) -> tuple:
+    def get_cartesian(self, n: int = 3) -> tuple:
         """
         Returning the lattice parameters with the particles of the unit cell and their position in cartesian coordinate.
 
@@ -123,7 +123,7 @@ class CifToString:
         return a, b, c, alpha, beta, gamma, *elements
 
 
-    def get_fractional(self, n=3) -> tuple:
+    def get_fractional(self, n: int = 3) -> tuple:
         """
         Returning the lattice parameters with the particles of the unit cell and their position in fractional coordinate.
 
@@ -139,4 +139,37 @@ class CifToString:
         a, b, c, alpha, beta, gamma = self.get_parameters(n)
         elements = self.get_coords("fractional", n)
         return a, b, c, alpha, beta, gamma, *elements
+
+
+    def get_multi_line(self, name: str, n1: int = 1, n2: int = 2) -> str:
+        """
+        Returning the lattice parameters, the lengths as floats in a separate line and the angles...
+        as integers in the line after that, then the element following with its cartesian and fractional...
+        coordinates as floats in a separate line.
+
+        Parameters: 
+            name: str
+                To specify the type of coordinate direction.
+            n1: int
+                The decimal point to round the lattice parameters.
+                Default to 1.
+            n2: int
+                The decimal point to show the coordinate digits.
+                Default to 2.
+        
+        Returns:
+            A multi line string with the mentioned properties of the unit cell.
+        """
+        a, b, c, alpha, beta, gamma = self.get_parameters(n1)
+        alpha, beta, gamma = str(int(float(alpha))), str(int(float(beta))), str(int(float(gamma)))
+        output = a + " " + b + " " + c + "\n"
+        output += alpha + " " + beta + " " + gamma
+        elements = self.get_coords(name, n2)
+        l = int(len(elements) / 4)
+        k = 0
+        for i in range(l):
+            output += "\n" + elements[i + k]
+            output += "\n" + elements[i + k + 1] + " " + elements[i + k + 2] + " " + elements[i + k + 3]
+            k += 3
+        return output
 
