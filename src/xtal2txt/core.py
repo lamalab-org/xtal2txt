@@ -2,6 +2,7 @@ import re
 from typing import List, Tuple
 
 from pymatgen.core import Lattice, Structure
+from invcryrep.invcryrep import InvCryRep
 
 
 class Textrep:
@@ -178,8 +179,21 @@ class Textrep:
             output += "\n" + elements[i] + "\n" + " ".join(elements[i + 1 : i + 4])
         return output
 
-    def get_slice():
-        pass
+    def get_slice(self, primitive:bool = True)-> str:
+    
+        """Returns SLICE representation of the crystal structure.
+
+        Args:
+
+        Returns:
+            str: The calculated slice.
+        """
+        backend = InvCryRep()
+        if primitive:
+            primitive_structure = self.structure.get_primitive_structure() # convert to primitive structure
+            return backend.structure2SLICES(primitive_structure)
+        return backend.structure2SLICES(self.structure)
+
 
     def get_wycryst():
         pass
