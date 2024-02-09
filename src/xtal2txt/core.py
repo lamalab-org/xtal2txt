@@ -183,3 +183,17 @@ class Textrep:
 
     def get_wycryst():
         pass
+    
+    def get_composition(self, format="hill")-> str:
+        """Return composition in hill format.
+
+        Args:
+            format (str): format in which the composition is required.
+
+        Returns:
+            str: The composition in hill format.
+        """
+        if format == "hill":
+            composition_string = self.structure.composition.hill_formula
+            composition= composition_string.replace(" ", "")
+        return composition
