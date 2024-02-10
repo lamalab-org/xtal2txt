@@ -2,6 +2,8 @@ import re
 from typing import List, Tuple
 
 from pymatgen.core import Lattice, Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
 
 
@@ -56,7 +58,7 @@ class Textrep:
         new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
         return new_string
 
-    def get_cif_string(self, decimal_places: int = 3) -> str:
+    def get_cif_string(self, format:str ="symmetrized" ,decimal_places: int = 3) -> str:
         """
         Generate CIF as string in multi-line format.
 
@@ -71,8 +73,18 @@ class Textrep:
         Returns:
             A multi-line string
         """
-        original_string = "\n".join(self.structure.to(fmt="cif").split("\n")[1:])
-        return self.round_numbers_in_string(original_string, decimal_places)
+
+        if format == "symmetrized":
+            symmetry_analyzer = SpacegroupAnalyzer(self.structure)
+            symmetrized_structure = symmetry_analyzer.get_symmetrized_structure()
+            cif_string =  str(CifWriter(symmetrized_structure, symprec=0.1).ciffile)
+            return self.round_numbers_in_string(cif_string, decimal_places)
+        
+        elif format == "p1":
+            cif_string = "\n".join(self.structure.to(fmt="cif").split("\n")[1:])
+            return self.round_numbers_in_string(cif_string, decimal_places)
+
+
 
     def get_lattice_parameters(self, decimal_places: int = 3) -> List[str]:
         """
@@ -147,7 +159,7 @@ class Textrep:
         elements = self.get_coords("fractional", decimal_places)
         return tuple(parameters + elements)
 
-    def get_crystaltuple(
+    def get_crystal_tuple(
         self, name: str, param_decimal_places: int = 1, coord_decimal_places: int = 2
     ) -> str:
         """
