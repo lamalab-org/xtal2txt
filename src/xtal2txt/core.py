@@ -7,7 +7,7 @@ from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
 
 
-class Textrep:
+class TextRep:
     """
     Generate text representations of crystal structure from pymatgen structure object.
 
@@ -27,7 +27,7 @@ class Textrep:
         self.structure = structure
 
     @classmethod
-    def from_file(cls, filepath: str) -> "Textrep":
+    def from_file(cls, filepath: str) -> "TextRep":
         """
         Read cif files as pymatgen structure object. Instantiate the class with the structure object.
 
@@ -58,7 +58,7 @@ class Textrep:
         new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
         return new_string
 
-    def get_cif_string(self, format:str ="symmetrized" , decimal_places: int = 3) -> str:
+    def get_cif_string(self, format: str = "symmetrized", decimal_places: int = 3) -> str:
         """
         Generate CIF as string in multi-line format.
 
@@ -77,15 +77,12 @@ class Textrep:
         if format == "symmetrized":
             symmetry_analyzer = SpacegroupAnalyzer(self.structure)
             symmetrized_structure = symmetry_analyzer.get_symmetrized_structure()
-            cif_string =  str(CifWriter(symmetrized_structure, symprec=0.1).ciffile)
-            cif_string = "\n".join(cif_string.split("\n")[1:])
+            cif_string = str(CifWriter(symmetrized_structure, symprec=0.1).ciffile)
             return self.round_numbers_in_string(cif_string, decimal_places)
-        
+
         elif format == "p1":
             cif_string = "\n".join(self.structure.to(fmt="cif").split("\n")[1:])
             return self.round_numbers_in_string(cif_string, decimal_places)
-
-
 
     def get_lattice_parameters(self, decimal_places: int = 3) -> List[str]:
         """
@@ -192,8 +189,7 @@ class Textrep:
             output += "\n" + elements[i] + "\n" + " ".join(elements[i + 1 : i + 4])
         return output
 
-    def get_slice(self, primitive:bool = True)-> str:
-    
+    def get_slice(self, primitive: bool = True) -> str:
         """Returns SLICE representation of the crystal structure.
 
         Args:
@@ -203,12 +199,16 @@ class Textrep:
         """
         backend = InvCryRep()
         if primitive:
-            primitive_structure = self.structure.get_primitive_structure() # convert to primitive structure
+            primitive_structure = (
+                self.structure.get_primitive_structure()
+            )  # convert to primitive structure
             return backend.structure2SLICES(primitive_structure)
         return backend.structure2SLICES(self.structure)
 
+    def get_wycryst():
+        pass
 
-    def get_composition(self, format="hill")-> str:
+    def get_composition(self, format="hill") -> str:
         """Return composition in hill format.
 
         Args:
@@ -219,7 +219,7 @@ class Textrep:
         """
         if format == "hill":
             composition_string = self.structure.composition.hill_formula
-            composition= composition_string.replace(" ", "")
+            composition = composition_string.replace(" ", "")
         return composition
 
     

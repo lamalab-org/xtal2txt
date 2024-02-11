@@ -1,7 +1,9 @@
-import pytest
-from ciftostring import CifToString
+from xtal2txt import TextRep
+import os 
 
-N2 = CifToString.from_file(".data/N2.cif")
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+N2 = TextRep.from_file(os.path.join(THIS_DIR, "data", "N2.cif"))
 
 
 def test_get_cif_string() -> None:
