@@ -7,7 +7,7 @@ from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
 
 
-class Textrep:
+class TextRep:
     """
     Generate text representations of crystal structure from pymatgen structure object.
 
@@ -27,7 +27,7 @@ class Textrep:
         self.structure = structure
 
     @classmethod
-    def from_file(cls, filepath: str) -> "Textrep":
+    def from_file(cls, filepath: str) -> "TextRep":
         """
         Read cif files as pymatgen structure object. Instantiate the class with the structure object.
 
