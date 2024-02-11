@@ -1,7 +1,7 @@
 import re
 from typing import List, Tuple
 
-from pymatgen.core import Lattice, Structure
+from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
@@ -58,7 +58,7 @@ class Textrep:
         new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
         return new_string
 
-    def get_cif_string(self, format:str ="symmetrized" ,decimal_places: int = 3) -> str:
+    def get_cif_string(self, format:str ="symmetrized" , decimal_places: int = 3) -> str:
         """
         Generate CIF as string in multi-line format.
 
@@ -78,6 +78,7 @@ class Textrep:
             symmetry_analyzer = SpacegroupAnalyzer(self.structure)
             symmetrized_structure = symmetry_analyzer.get_symmetrized_structure()
             cif_string =  str(CifWriter(symmetrized_structure, symprec=0.1).ciffile)
+            cif_string = "\n".join(cif_string.split("\n")[1:])
             return self.round_numbers_in_string(cif_string, decimal_places)
         
         elif format == "p1":
@@ -207,9 +208,6 @@ class Textrep:
         return backend.structure2SLICES(self.structure)
 
 
-    def get_wycryst():
-        pass
-    
     def get_composition(self, format="hill")-> str:
         """Return composition in hill format.
 
@@ -223,3 +221,56 @@ class Textrep:
             composition_string = self.structure.composition.hill_formula
             composition= composition_string.replace(" ", "")
         return composition
+
+    
+    def get_crystal_llm_rep():
+        """
+        Code adopted from https://github.com/facebookresearch/crystal-llm/blob/main/llama_finetune.py
+        https://openreview.net/pdf?id=0r5DE2ZSwJ
+        TODO: This would later replace the get_crystal_tuple method
+        TODO: kwargs and customizable parameters
+        TODO: Translation of the structure optional
+        Returns the representation as per the above citation,  lattice length( the lengths with one decimal place), angles (as integers), atoms and their coordinates with line breaks...
+        Fractional coordinates are always represented with two digits
+        3D coordinates are combined with spaces and all other crystal components are combined with newlines
+        in the line after that, then the element following with its Cartesian and fractional...
+        coordinates as floats in a separate line.
+        
+        """
+        # Randomly translate within the unit cell
+        structure.translate_sites(
+            indices=range(len(structure.sites)), vector=np.random.uniform(size=(3,))
+        )
+
+        lengths = structure.lattice.parameters[:3]
+        angles = structure.lattice.parameters[3:]
+        atom_ids = structure.species
+        frac_coords = structure.frac_coords
+
+        crystal_str = \
+            " ".join(["{0:.1f}".format(x) for x in lengths]) + "\n" + \
+            " ".join([str(int(x)) for x in angles]) + "\n" + \
+            "\n".join([
+                str(t) + "\n" + " ".join([
+                    "{0:.2f}".format(x) for x in c
+                ]) for t,c in zip(atom_ids, frac_coords)
+            ])
+
+        return crystal_str
+
+
+    def get_robocrystallographer():
+        """
+        https://github.com/hackingmaterials/robocrystallographer/tree/main
+        Uses older version of pymatgen
+
+        """
+        pass
+
+    def get_wycryst():
+        pass
+
+    def get_all_text_reps():
+        pass
+
+        
