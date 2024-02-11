@@ -1,4 +1,3 @@
-import pytest
 from ciftostring import CifToString
 
 N2 = CifToString.from_file(".data/N2.cif")

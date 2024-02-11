@@ -1,7 +1,7 @@
 import re
 from typing import List, Tuple
 
-from pymatgen.core import Lattice, Structure
+from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
@@ -58,7 +58,7 @@ class Textrep:
         new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
         return new_string
 
-    def get_cif_string(self, format:str ="symmetrized" ,decimal_places: int = 3) -> str:
+    def get_cif_string(self, format: str = "symmetrized", decimal_places: int = 3) -> str:
         """
         Generate CIF as string in multi-line format.
 
@@ -77,14 +77,12 @@ class Textrep:
         if format == "symmetrized":
             symmetry_analyzer = SpacegroupAnalyzer(self.structure)
             symmetrized_structure = symmetry_analyzer.get_symmetrized_structure()
-            cif_string =  str(CifWriter(symmetrized_structure, symprec=0.1).ciffile)
+            cif_string = str(CifWriter(symmetrized_structure, symprec=0.1).ciffile)
             return self.round_numbers_in_string(cif_string, decimal_places)
-        
+
         elif format == "p1":
             cif_string = "\n".join(self.structure.to(fmt="cif").split("\n")[1:])
             return self.round_numbers_in_string(cif_string, decimal_places)
-
-
 
     def get_lattice_parameters(self, decimal_places: int = 3) -> List[str]:
         """
@@ -191,8 +189,7 @@ class Textrep:
             output += "\n" + elements[i] + "\n" + " ".join(elements[i + 1 : i + 4])
         return output
 
-    def get_slice(self, primitive:bool = True)-> str:
-    
+    def get_slice(self, primitive: bool = True) -> str:
         """Returns SLICE representation of the crystal structure.
 
         Args:
@@ -202,15 +199,16 @@ class Textrep:
         """
         backend = InvCryRep()
         if primitive:
-            primitive_structure = self.structure.get_primitive_structure() # convert to primitive structure
+            primitive_structure = (
+                self.structure.get_primitive_structure()
+            )  # convert to primitive structure
             return backend.structure2SLICES(primitive_structure)
         return backend.structure2SLICES(self.structure)
 
-
     def get_wycryst():
         pass
-    
-    def get_composition(self, format="hill")-> str:
+
+    def get_composition(self, format="hill") -> str:
         """Return composition in hill format.
 
         Args:
@@ -221,5 +219,5 @@ class Textrep:
         """
         if format == "hill":
             composition_string = self.structure.composition.hill_formula
-            composition= composition_string.replace(" ", "")
+            composition = composition_string.replace(" ", "")
         return composition
