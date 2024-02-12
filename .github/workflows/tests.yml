@@ -25,8 +25,8 @@ jobs:
             ./pdm.lock
             ./pdm.new.lock
       - name: Install dependencies
-        run: pdm install -G dev
-      - name: activate venv
-        run: eval $(pdm venv activate)
-      - name: Run tests
-        run: pytest tests/
+        run: |
+          pdm sync -d -G dev
+      - name: Run Tests
+        run: |
+          pdm run -v pytest tests
