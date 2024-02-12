@@ -29,4 +29,5 @@ jobs:
           pdm install --no-lock -G dev
       - name: Run Tests
         run: |
-          pdm run -v pytest tests
+          eval $(pdm venv activate)
+          pytest tests
