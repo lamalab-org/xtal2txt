@@ -1,8 +1,14 @@
 import os
 import re
 import json
+from pathlib import Path
 
 from transformers import PreTrainedTokenizer
+
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
+COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(self, vocab_file, model_max_length=None, padding_length=None, **kwargs):
@@ -116,3 +122,13 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         tokenizer.vocab = vocab
 
         return tokenizer
+
+
+
+class SliceTokenizer(Xtal2txtTokenizer):
+    def __init__(self, vocab_file=SLICE_VOCAB, model_max_length=None, padding_length=None, **kwargs):
+        super(SliceTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
+
+class CompositionTokenizer(Xtal2txtTokenizer):
+    def __init__(self, vocab_file=COMPOSITION_VOCAB, model_max_length=None, padding_length=None, **kwargs):
+        super(CompositionTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
