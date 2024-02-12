@@ -6,6 +6,7 @@ from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
+from robocrys import StructureCondenser, StructureDescriber
 
 
 class TextRep:
@@ -214,13 +215,18 @@ class TextRep:
 
         return crystal_str
 
-    def get_robocrystallographer():
+    def get_robocrys_rep(self):
         """
         https://github.com/hackingmaterials/robocrystallographer/tree/main
-        Uses older version of pymatgen
+        TODO: pinned  matminer to 0.9.1.dev14 (check if can be relaxed ?)
+        TODO: check any post processing for better tokenization (rounding, replacing unicodes etc..)
 
         """
-        pass
+        condenser = StructureCondenser()
+        describer = StructureDescriber()
+
+        condensed_structure = condenser.condense_structure(self.structure)
+        return describer.describe(condensed_structure)
 
     def get_wycryst():
         pass
