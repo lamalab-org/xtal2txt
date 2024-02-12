@@ -4,6 +4,8 @@ import os
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 N2 = TextRep.from_input(os.path.join(THIS_DIR, "data", "N2.cif"))
+srtio3_p1 = TextRep.from_input(os.path.join(THIS_DIR, "data", "SrTiO3_p1.cif"))
+srtio3_symmetrized = TextRep.from_input(os.path.join(THIS_DIR, "data", "SrTiO3_symmetrized.cif"))
 
 
 def test_get_cif_string() -> None:
@@ -28,6 +30,10 @@ def test_get_crystal_llm_rep() -> None:
     expected_output = "5.6 5.6 5.6\n90 90 90\nN0+\n0.48 0.98 0.52\nN0+\n0.98 0.52 0.48\nN0+\n0.02 0.02 0.02\nN0+\n0.52 0.48 0.98"
     assert N2.get_crystal_llm_rep() == expected_output
 
+def test_robocrys_for_cif_format() -> None:
+    assert srtio3_p1.get_robocrys_rep() == srtio3_symmetrized.get_robocrys_rep()
+
 def test_get_robocrys_rep() -> None:
     excepted_output = "N2 is Indium-like structured and crystallizes in the cubic P2_13 space group. The structure is zero-dimensional and consists of four ammonia atoms. N(1) is bonded in a 1-coordinate geometry to  atoms."
     assert N2.get_robocrys_rep() == excepted_output
+
