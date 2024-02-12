@@ -9,6 +9,7 @@ from transformers import PreTrainedTokenizer
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
 COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
+CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(self, vocab_file, model_max_length=None, padding_length=None, **kwargs):
@@ -132,3 +133,7 @@ class SliceTokenizer(Xtal2txtTokenizer):
 class CompositionTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=COMPOSITION_VOCAB, model_max_length=None, padding_length=None, **kwargs):
         super(CompositionTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
+
+class CifTokenizer(Xtal2txtTokenizer):
+    def __init__(self, vocab_file=CIF_VOCAB, model_max_length=None, padding_length=None, **kwargs):
+        super(CifTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
