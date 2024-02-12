@@ -29,6 +29,7 @@ dependencies = [
     "slices>=1.4.9",
     "robocrys>=0.2.8",
     "matminer @ git+https://github.com/hackingmaterials/matminer.git",
+    "absl-py>=2.1.0",
 ]
 requires-python = ">=3.9,<3.11"
 readme = "README.md"

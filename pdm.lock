@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:d024a8073d406989f9bfa9f18ff484f5fbff3ddae4cfc712e568a2fd3f1cf086"
+content_hash = "sha256:8abf7fa77110cdcc5bf513c2b78f964bcbe661c0b1666ca5af0ce3c49e2910a4"
 
 [[package]]
 name = "absl-py"
@@ -13,7 +13,6 @@ version = "2.1.0"
 requires_python = ">=3.7"
 summary = "Abseil Python Common Libraries, see https://github.com/abseil/abseil-py."
 groups = ["default"]
-marker = "(platform_machine == \"arm64\" or platform_machine == \"aarch64\") and platform_system == \"Linux\" or platform_system == \"Windows\" or platform_system == \"Darwin\" and platform_machine == \"arm64\""
 files = [
     {file = "absl-py-2.1.0.tar.gz", hash = "sha256:7820790efbb316739cde8b4e19357243fc3608a152024288513dd968d7d959ff"},
     {file = "absl_py-2.1.0-py3-none-any.whl", hash = "sha256:526a04eadab8b4ee719ce68f204172ead1027549089702d99b9059f129ff1308"},
