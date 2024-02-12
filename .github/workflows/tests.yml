@@ -25,7 +25,7 @@ jobs:
             ./pdm.lock
             ./pdm.new.lock
       - name: activate venv
-        run: source ./.venv/bin/activate
+        run: eval $(pdm venv activate)
       - name: Install dependencies
         run: pdm install -G dev
       - name: Run tests
