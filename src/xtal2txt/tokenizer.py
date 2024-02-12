@@ -10,6 +10,7 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
 COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
 CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
+CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(self, vocab_file, model_max_length=None, padding_length=None, **kwargs):
@@ -137,3 +138,10 @@ class CompositionTokenizer(Xtal2txtTokenizer):
 class CifTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=CIF_VOCAB, model_max_length=None, padding_length=None, **kwargs):
         super(CifTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
+
+class Crystal_llm_Tokenizer(Xtal2txtTokenizer):
+    def __init__(self, vocab_file=CRYSTAL_LLM_VOCAB, model_max_length=None, padding_length=None, **kwargs):
+        super(Crystal_llm_Tokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
+
+    def convert_tokens_to_string(self, tokens):
+        return ''.join(tokens)
