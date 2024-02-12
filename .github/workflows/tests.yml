@@ -20,13 +20,13 @@ jobs:
         uses: pdm-project/setup-pdm@v3
         with:
           python-version: ${{ matrix.python-version }}
-          cache: true
-          cache-dependency-path: |
-            ./pdm.lock
-            ./pdm.new.lock
+          # cache: true
+          # cache-dependency-path: |
+          #   ./pdm.lock
+          #   ./pdm.new.lock
       - name: Install dependencies
         run: |
-          pdm install -G dev
+          pdm sync -d -G dev
       - name: Run Tests
         run: |
           pdm run -v pytest tests
