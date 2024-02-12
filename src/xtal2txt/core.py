@@ -1,18 +1,23 @@
 import re
-from typing import List, Tuple
+from typing import List, Union
+from pathlib import Path
 
-from pymatgen.core import Lattice, Structure
+from pymatgen.core import Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.io.cif import CifWriter
+from invcryrep.invcryrep import InvCryRep
+from robocrys import StructureCondenser, StructureDescriber
 
 
-class Textrep:
+class TextRep:
     """
-    Generate text representations of crystal structure from pymatgen structure object.
+    Generate text representations of crystal structure for Language modelling.
 
     Attributes:
         structure : pymatgen structure
 
     Methods:
-        from_file : a classmethod
+        from_input : a classmethod
         get_cif_string(n=3)
         get_parameters(n=3)
         get_coords(name, n=3)
@@ -24,23 +29,30 @@ class Textrep:
         self.structure = structure
 
     @classmethod
-    def from_file(cls, filepath: str) -> "Textrep":
+    def from_input(cls, input_data: Union[str, Path, Structure]) -> "TextRep":
         """
-        Read cif files as pymatgen structure object. Instantiate the class with the structure object.
+        Instantiate the TextRep class object with the pymatgen structure from a cif file, a cif string, or a pymatgen Structure object.
 
         Parameters:
-            filepath : cif file of a crystal structure.
+            input_data : cif file of a crystal structure, a cif string, or a pymatgen Structure object.
 
         Returns:
-            Textrep
+            TextRep
         """
-        structure = Structure.from_file(filepath)
+        if isinstance(input_data, Structure):
+            structure = input_data
+
+        elif isinstance(input_data, (str, Path)) and Path(input_data).is_file():
+            structure = Structure.from_file(str(input_data))
+
+        else:
+            structure = Structure.from_str(str(input_data), "cif")
         return cls(structure)
 
     @staticmethod
     def round_numbers_in_string(original_string: str, decimal_places: int) -> str:
         """
-        Rounds float numbers in the given string to the specified number of decimal places.
+        Rounds float numbers in the given string to the specified number of decimal places using regex.
 
         Parameters:
             original_string : str, the input string containing float numbers.
@@ -49,29 +61,45 @@ class Textrep:
         Returns:
             A new string with rounded float numbers.
         """
-        pattern = r"[+-]?(?=\d*[.eE])(?=\.?\d)\d*\.?\d*(?:[eE][+-]?\d+)"
+        pattern = r"\b\d+\.\d+\b"
         matches = re.findall(pattern, original_string)
         rounded_numbers = [round(float(match), decimal_places) for match in matches]
         new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
         return new_string
 
-    def get_cif_string(self, decimal_places: int = 3) -> str:
+    def get_cif_string(self, format: str = "symmetrized", decimal_places: int = 3) -> str:
         """
         Generate CIF as string in multi-line format.
 
         All float numbers can be rounded to the specified number (decimal_places).
-        Using a Regex pattern to do this on the whole string as we only want to round the float numbers, not integers.
-        The Regex pattern detects any float number (negative or positive) in any display method (scientific, normal, ...).
+        Currently supports two formats. Symmetrized (cif with symmetry operations and the least symmetric basis) ...
+        and P1 (conventional unit cell , with all the atoms listed and only identity as symmetry operation).
+        TODO: cif format with bonding blocks
+
 
         Parameters:
+            format : str, optional, to specify the format of the cif string. Defaults to "symmetrized".
             decimal_places : int, optional, to specify the rounding digit for float numbers.
                             Defaults to 3
 
         Returns:
-            A multi-line string
+            A multi-line string representation of CIF.
         """
-        original_string = "\n".join(self.structure.to(fmt="cif").split("\n")[1:])
-        return self.round_numbers_in_string(original_string, decimal_places)
+
+        if format == "symmetrized":
+            symmetry_analyzer = SpacegroupAnalyzer(self.structure)
+            symmetrized_structure = symmetry_analyzer.get_symmetrized_structure()
+            cif_string = str(
+                CifWriter(
+                    symmetrized_structure, symprec=0.1, significant_figures=decimal_places
+                ).ciffile
+            )
+            cif = "\n".join(cif_string.split("\n")[1:])
+            return self.round_numbers_in_string(cif, decimal_places)
+
+        elif format == "p1":
+            cif_string = "\n".join(self.structure.to(fmt="cif").split("\n")[1:])
+            return self.round_numbers_in_string(cif_string, decimal_places)
 
     def get_lattice_parameters(self, decimal_places: int = 3) -> List[str]:
         """
@@ -116,70 +144,93 @@ class Textrep:
             elements.extend(coord)
         return elements
 
-    def get_cartesian(self, decimal_places: int = 3) -> Tuple[str, ...]:
-        """
-        Return the lattice parameters with atoms of the unit cell and their position in Cartesian coordinate with optional rounding.
+    def get_slice(self, primitive: bool = True) -> str:
+        """Returns SLICE representation of the crystal structure.
+        https://www.nature.com/articles/s41467-023-42870-7
 
         Parameters:
-            decimal_places : int, optional, to specify the rounding digit for float numbers.
-                            Defaults to 3
+            primitive : bool, optional, to specify if the primitive structure is required. Defaults to True.
 
         Returns:
-            A tuple of strings with the mentioned properties.
+            str: The calculated slice.
         """
-        parameters = self.get_lattice_parameters(decimal_places)
-        elements = self.get_coords("cartesian", decimal_places)
-        return tuple(parameters + elements)
+        backend = InvCryRep()
+        if primitive:
+            primitive_structure = (
+                self.structure.get_primitive_structure()
+            )  # convert to primitive structure
+            return backend.structure2SLICES(primitive_structure)
+        return backend.structure2SLICES(self.structure)
 
-    def get_fractional(self, decimal_places: int = 3) -> Tuple[str, ...]:
-        """
-        Returning the lattice parameters with the particles of the unit cell and their position in fractional coordinate with optional rounding.
+    def get_composition(self, format="hill") -> str:
+        """Return composition in hill format.
 
-        Parameters:
-            decimal_places : int, optional, to specify the rounding digit for float numbers.
-                            Defaults to 3
+        Args:
+            format (str): format in which the composition is required.
 
         Returns:
-            A tuple of strings with the mentioned properties.
+            str: The composition in hill format.
         """
-        parameters = self.get_lattice_parameters(decimal_places)
-        elements = self.get_coords("fractional", decimal_places)
-        return tuple(parameters + elements)
+        if format == "hill":
+            composition_string = self.structure.composition.hill_formula
+            composition = composition_string.replace(" ", "")
+        return composition
 
-    def get_crystaltuple(
-        self, name: str, param_decimal_places: int = 1, coord_decimal_places: int = 2
-    ) -> str:
+    def get_crystal_llm_rep(self):
         """
+        Code adopted from https://github.com/facebookresearch/crystal-llm/blob/main/llama_finetune.py
         https://openreview.net/pdf?id=0r5DE2ZSwJ
+        TODO: kwargs and customizable parameters
+        TODO: Rounding parameters user defined
+        TODO: fractional/ caartesian optional
+        TODO: Translation of the structure optional
         Returns the representation as per the above citation,  lattice length( the lengths with one decimal place), angles (as integers), atoms and their coordinates with line breaks...
         Fractional coordinates are always represented with two digits
         3D coordinates are combined with spaces and all other crystal components are combined with newlines
         in the line after that, then the element following with its Cartesian and fractional...
         coordinates as floats in a separate line.
 
-        Parameters:
-            name: str
-                To specify the type of coordinate direction.
-            param_decimal_places: int
-                The decimal point to round the lattice parameters.
-                Defaults to 1.
-            coord_decimal_places: int
-                The decimal point to show the coordinate digits.
-                Defaults to 2.
-
-        Returns:
-            A multi-line string with the mentioned properties of the unit cell.
         """
-        parameters = self.get_lattice_parameters(param_decimal_places)
-        angles = [str(int(float(angle))) for angle in parameters[3:6]]
-        output = " ".join(parameters[:3]) + "\n" + " ".join(angles)
-        elements = self.get_coords(name, coord_decimal_places)
-        for i in range(0, len(elements), 4):
-            output += "\n" + elements[i] + "\n" + " ".join(elements[i + 1 : i + 4])
-        return output
+        # Randomly translate within the unit cell
+        # self.structure.translate_sites(
+        #     indices=range(len(self.structure.sites)), vector=np.random.uniform(size=(3,))
+        # )
 
-    def get_slice():
-        pass
+        lengths = self.structure.lattice.parameters[:3]
+        angles = self.structure.lattice.parameters[3:]
+        atom_ids = self.structure.species
+        frac_coords = self.structure.frac_coords
+
+        crystal_str = (
+            " ".join(["{0:.1f}".format(x) for x in lengths])
+            + "\n"
+            + " ".join([str(int(x)) for x in angles])
+            + "\n"
+            + "\n".join(
+                [
+                    str(t) + "\n" + " ".join(["{0:.2f}".format(x) for x in c])
+                    for t, c in zip(atom_ids, frac_coords)
+                ]
+            )
+        )
+
+        return crystal_str
+
+    def get_robocrys_rep(self):
+        """
+        https://github.com/hackingmaterials/robocrystallographer/tree/main
+        TODO: pinned  matminer to 0.9.1.dev14 (check if can be relaxed ?)
+        TODO: check any post processing for better tokenization (rounding, replacing unicodes etc..)
+
+        """
+        condenser = StructureCondenser()
+        describer = StructureDescriber()
+
+        condensed_structure = condenser.condense_structure(self.structure)
+        return describer.describe(condensed_structure)
 
     def get_wycryst():
+        pass
+
+    def get_all_text_reps():
         pass
