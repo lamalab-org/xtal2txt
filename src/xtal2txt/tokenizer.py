@@ -4,9 +4,9 @@ import json
 
 from transformers import PreTrainedTokenizer
 
-class AtomVocabTokenizer(PreTrainedTokenizer):
+class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(self, vocab_file, model_max_length=None, padding_length=None, **kwargs):
-        super(AtomVocabTokenizer, self).__init__(model_max_length=model_max_length, **kwargs)
+        super(Xtal2txtTokenizer, self).__init__(model_max_length=model_max_length, **kwargs)
         
         self.vocab = self.load_vocab(vocab_file)
         self.vocab_file = vocab_file
