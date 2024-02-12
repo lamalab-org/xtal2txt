@@ -26,7 +26,7 @@ jobs:
           #   ./pdm.new.lock
       - name: Install dependencies
         run: |
-          pdm sync -d -G dev
+          pdm install --no-lock -G dev
       - name: Run Tests
         run: |
           pdm run -v pytest tests
