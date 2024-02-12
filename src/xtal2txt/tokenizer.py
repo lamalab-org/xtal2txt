@@ -131,13 +131,20 @@ class SliceTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=SLICE_VOCAB, model_max_length=None, padding_length=None, **kwargs):
         super(SliceTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
 
+
+
 class CompositionTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=COMPOSITION_VOCAB, model_max_length=None, padding_length=None, **kwargs):
         super(CompositionTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
 
+    def convert_tokens_to_string(self, tokens):
+        return ''.join(tokens)
+    
+
 class CifTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=CIF_VOCAB, model_max_length=None, padding_length=None, **kwargs):
         super(CifTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
+
 
 class Crystal_llm_Tokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=CRYSTAL_LLM_VOCAB, model_max_length=None, padding_length=None, **kwargs):
