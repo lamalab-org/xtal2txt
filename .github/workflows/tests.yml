@@ -24,9 +24,9 @@ jobs:
           cache-dependency-path: |
             ./pdm.lock
             ./pdm.new.lock
-      - name: activate venv
-        run: eval $(pdm venv activate)
       - name: Install dependencies
         run: pdm install -G dev
+      - name: activate venv
+        run: eval $(pdm venv activate)
       - name: Run tests
         run: pytest tests/
