@@ -27,6 +27,7 @@ authors = [
 dependencies = [
     "pymatgen>=2023.9.25",
     "slices>=1.4.9",
+    "matminer=0.9.1.dev14",
 ]
 requires-python = ">=3.9,<3.11"
 readme = "README.md"
