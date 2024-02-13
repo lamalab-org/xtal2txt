@@ -232,5 +232,18 @@ class TextRep:
     def get_wycryst():
         pass
 
-    def get_all_text_reps():
-        pass
+    def get_all_text_reps(self, decimal_places: int = 2):
+        """
+        Returns all the Text representations of the crystal structure in a dictionary.
+        """
+
+        return {
+            "cif_p1": self.get_cif_string(format="p1", decimal_places=decimal_places),
+            "cif_symmetrized": self.get_cif_string(format="symmetrized", decimal_places=decimal_places),
+            "cif_bonding": None,
+            "slice": self.get_slice(),
+            "composition": self.get_composition(),
+            "crystal_llm_rep": self.get_crystal_llm_rep(),
+            "robocrys_rep": self.get_robocrys_rep(),
+            "wycoff_rep": None,
+        }
