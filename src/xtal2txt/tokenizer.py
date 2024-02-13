@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from transformers import PreTrainedTokenizer
+from tokenizers import Tokenizer
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +12,8 @@ SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
 COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
 CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
 CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
+ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
+
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(self, vocab_file, model_max_length=None, padding_length=None, **kwargs):
@@ -154,3 +157,14 @@ class Crystal_llm_Tokenizer(Xtal2txtTokenizer):
 
     def convert_tokens_to_string(self, tokens):
         return ''.join(tokens)
+
+
+class RobocrysTokenizer():
+    """Tokenizer for Robocrystallographer. Would be BPE tokenizer.
+    trained on the Robocrystallographer dataset.
+    TODO: Implement this tokenizer.
+    """
+    def __init__(self, vocab_file, **kwargs):
+            tokenizer = Tokenizer.from_file(vocab_file)
+            wrapped_tokenizer = PreTrainedTokenizerFast(tokenizer_object=tokenizer)
+            
