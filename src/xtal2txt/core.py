@@ -48,6 +48,13 @@ class TextRep:
         else:
             structure = Structure.from_str(str(input_data), "cif")
         return cls(structure)
+    
+    @staticmethod
+    def _safe_call(func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            return None
 
     @staticmethod
     def round_numbers_in_string(original_string: str, decimal_places: int) -> str:
@@ -232,5 +239,19 @@ class TextRep:
     def get_wycryst():
         pass
 
-    def get_all_text_reps():
-        pass
+    def get_all_text_reps(self, decimal_places: int = 2):
+        """
+        Returns all the Text representations of the crystal structure in a dictionary.
+        """
+
+        return {
+            "cif_p1": self._safe_call(self.get_cif_string, format="p1", decimal_places=decimal_places),
+            "cif_symmetrized": self._safe_call(self.get_cif_string, format="symmetrized", decimal_places=decimal_places),
+            "cif_bonding": None,
+            "slice": self._safe_call(self.get_slice),
+            "composition": self._safe_call(self.get_composition),
+            "crystal_llm_rep": self._safe_call(self.get_crystal_llm_rep),
+            "robocrys_rep": self._safe_call(self.get_robocrys_rep),
+            "wycoff_rep": None,
+        }
+
