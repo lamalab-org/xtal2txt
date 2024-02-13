@@ -1,7 +1,7 @@
 # See https://setuptools.readthedocs.io/en/latest/build_meta.html
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.black]
 line-length = 100
@@ -13,3 +13,30 @@ multi_line_output = 3
 line_length = 100
 include_trailing_comma = true
 reverse_relative = true
+
+[tool.pdm]
+distribution = true
+
+[project]
+name = "xtal2txt"
+version = "0.1.0"
+description = "Create text representations for crystal structures"
+authors = [
+    {name = "Nawaf Alampara, Reza Aliakbari, Kevin Maik Jablonka", email = "mail@kjablonka.com"},
+]
+dependencies = [
+    "pymatgen>=2023.9.25",
+    "slices>=1.4.9",
+    "robocrys>=0.2.8",
+    "matminer @ git+https://github.com/hackingmaterials/matminer.git",
+]
+requires-python = ">=3.9,<3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "black>=24.1.1",
+    "ruff>=0.2.1",
+]
