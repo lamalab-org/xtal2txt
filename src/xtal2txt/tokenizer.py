@@ -3,7 +3,8 @@ import re
 import json
 from pathlib import Path
 
-from transformers import PreTrainedTokenizer
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
+
 from tokenizers import Tokenizer
 
 
@@ -164,7 +165,89 @@ class RobocrysTokenizer():
     trained on the Robocrystallographer dataset.
     TODO: Implement this tokenizer.
     """
-    def __init__(self, vocab_file, **kwargs):
+    def __init__(self, vocab_file=ROBOCRYS_VOCAB, **kwargs):
             tokenizer = Tokenizer.from_file(vocab_file)
             wrapped_tokenizer = PreTrainedTokenizerFast(tokenizer_object=tokenizer)
-            
+            self._tokenizer = wrapped_tokenizer
+
+
+    def tokenize(self, text):
+        return self._tokenizer.tokenize(text)
+
+    def encode(self, text):
+        return self._tokenizer.encode(text)
+
+    def decode(self, token_ids, skip_special_tokens=True):
+        # Check if token_ids is a string and convert it to a list of integers
+        if isinstance(token_ids, str):
+            token_ids = [int(token_ids)]
+        return self._tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
+    
+
+
+# from tokenizers import Tokenizer
+# from tokenizers.models import BPE
+# from tokenizers.pre_tokenizers import Whitespace
+
+# class RobocrysTokenizer(PreTrainedTokenizer):
+#     """Tokenizer for Robocrystallographer. Would be BPE tokenizer.
+#     trained on the Robocrystallographer dataset.
+#     """
+#     def __init__(self, vocab_file=ROBOCRYS_VOCAB, **kwargs):
+#         super().__init__(**kwargs)
+#         print(ROBOCRYS_VOCAB)
+
+#         tokenizer = Tokenizer(BPE())
+#         tokenizer.pre_tokenizer = Whitespace()
+
+#         #if vocab_file:
+#         tokenizer.model = BPE.from_file(vocab_file)
+#         self._tokenizer = tokenizer
+
+#     def tokenize(self, text):
+#         return self._tokenizer.tokenize(text)
+
+#     def encode(self, text):
+#         return self._tokenizer.encode(text)
+
+#     def decode(self, token_ids):
+#         return self._tokenizer.decode(token_ids)
+    
+#     def get_vocab(self):
+#         # Get vocabulary directly from the initialized tokenizer
+#         return self._tokenizer.get_vocab()
+    
+
+
+
+    
+
+# from transformers import PreTrainedTokenizerFast
+# from tokenizers import Tokenizer
+
+# class RobocrysTokenizer:
+#     """Tokenizer for Robocrystallographer. Would be BPE tokenizer.
+#     trained on the Robocrystallographer dataset.
+#     """
+#     def __init__(self, tokenizer_path, **kwargs):
+#         self._tokenizer = Tokenizer.from_file(tokenizer_path)
+#         self._wrapped_tokenizer = PreTrainedTokenizerFast(tokenizer_object=self._tokenizer, **kwargs)
+
+#         # Add special tokens
+#         special_tokens = {
+#             "unk_token": "[UNK]",
+#             "pad_token": "[PAD]",
+#             "cls_token": "[CLS]",
+#             "sep_token": "[SEP]",
+#             "mask_token": "[MASK]",
+#         }
+#         self._wrapped_tokenizer.add_special_tokens(special_tokens)
+
+#     def tokenize(self, text):
+#         return self._wrapped_tokenizer.tokenize(text)
+
+#     def encode(self, text):
+#         return self._wrapped_tokenizer.encode(text)
+
+#     def decode(self, token_ids):
+#         return self._wrapped_tokenizer.decode(token_ids)
