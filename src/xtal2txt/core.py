@@ -1,12 +1,16 @@
 import re
 from typing import List, Union
 from pathlib import Path
+from collections import Counter
 
 from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
 from robocrys import StructureCondenser, StructureDescriber
+from pyxtal import pyxtal
+from pymatgen.analysis.structure_matcher import StructureMatcher
+from pyxtal.lattice import Lattice
 
 
 class TextRep:
