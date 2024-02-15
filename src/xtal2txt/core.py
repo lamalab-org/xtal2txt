@@ -222,6 +222,7 @@ class TextRep:
         )
 
         return crystal_str
+        
 
     def get_robocrys_rep(self):
         """
@@ -236,8 +237,147 @@ class TextRep:
         condensed_structure = condenser.condense_structure(self.structure)
         return describer.describe(condensed_structure)
 
-    def get_wycryst():
-        pass
+
+    def get_wyckoff_positions(self):
+        """
+        Getting wyckoff positions of the elements in the unit cell as the combination of...
+        number and letter.
+
+        Returns: 
+            ouput: str
+                A multi-line string that contain elements of the unit cell along with their...
+                wyckoff position in each line.
+                Hint: At the end of the string, there is an additional newline character.
+        """
+
+        spacegroup_analyzer = SpacegroupAnalyzer(self.structure)
+        wyckoff_sites = spacegroup_analyzer.get_symmetry_dataset()
+        element_symbols = [site.specie.element.symbol for site in self.structure.sites]
+
+        data = []
+
+        for i in range(len(wyckoff_sites["wyckoffs"])):
+            sub_data = element_symbols[i], wyckoff_sites["wyckoffs"][i], wyckoff_sites["equivalent_atoms"][i]
+            data.append(sub_data)
+        
+        a = dict(Counter(data))
+
+        output = ""
+        for i, j in a.items():
+            output += str(i[0]) + " " +  str(j) + str(i[1]) + "\n"
+
+        return output
+
+    def get_wycryst(self):
+        """
+        Obtaining the wyckoff representation for crystal structures that include:
+            chemcial formula
+            space group number
+            elements of the unit cell with their wyckoff positions.
+
+        Returns:
+            output: str
+                A multi-line string, which contain mentioned properties of the crystal...
+                structure in each separate line.
+        """
+        output = ""
+        chemical_formula = self.structure.composition.formula
+        output += chemical_formula
+        output += "\n" + str(self.structure.get_space_group_info()[1])
+        output += "\n" + self.get_wyckoff_positions()
+
+        return output
+
+    
+    def wyckoff_decoder(self, lattice_params: bool = False): 
+        """
+        Generating a pymatgen object from the output of the get_wyckoff_rep() method by using...
+        pyxtal package. In this method, all data are extracted from the multi-line string of the...
+        mentioned method.
+        In pyxtal package, a 3D crystal is produced by specifying the dimensions, elements,...
+        composition of elements, space group, and sites as wyckoff positions of the elements.
+
+        Params:
+            lattice_params: boolean
+                To specify whether use lattice parameters in generating crystal structure.
+
+        Returns: 
+            pmg_struc: pymatgen.core.structure.Structure
+        """
+
+        # Always dimension is 3.
+        dimensions = 3
+
+        wyckoff_str = self.get_wycryst()
+        entities = wyckoff_str.split("\n")[:-1]
+        elements = entities[0]
+        spg = int(entities[1])
+        wyckoff_sites = entities[2:]
+        elements = elements.split(" ")
+
+        atoms = []
+        composition = []
+        for el in elements:
+            atom = el.rstrip('0123456789')
+            number = el[len(atom):]
+            atoms.append(atom)
+            composition.append(int(number))
+
+        sites = []
+        for atom in atoms:
+            sub_site = []
+            for site in wyckoff_sites:
+                if atom in site:
+                    sub_site.append(site.split()[1])
+            
+            sites.append(sub_site)
+
+        xtal_struc = pyxtal()
+
+        if lattice_params:
+            a, b, c, alpha, beta, gamma = self.get_parameters()
+            cell = Lattice.from_para(float(a), float(b), float(c), float(alpha), float(beta), float(gamma))
+            xtal_struc.from_random(dimensions,
+                                spg,
+                                atoms,
+                                composition,
+                                sites=sites,
+                                lattice=cell)
+        else:
+            xtal_struc.from_random(dimensions,
+                                spg,
+                                atoms,
+                                composition,
+                                sites=sites)
+
+        pmg_struc = xtal_struc.to_pymatgen()
+
+        return pmg_struc
+
+    
+    def match_structure(self, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell = True, 
+                    scale = True, allow_subset = True, attempt_supercell = True, lattice_params: bool = False):
+        """
+        To check if pymatgen object from the original cif file match with the generated...
+        pymatgen structure from wyckoff_decoder method out of wyckoff representation...
+        using fit() method of StructureMatcher module in pymatgen package.
+
+        Params:
+            StructureMatcher module can be access in below link with its parameters:
+                https://pymatgen.org/pymatgen.analysis.html#pymatgen.analysis.structure_matcher.StructureMatcher.get_mapping
+            lattice_params: bool
+                To specify using lattice parameters in the wyckoff_decoder method.
+
+        Returns:
+            StructureMatcher().fit(): bool
+        """
+
+        original_struct = self.structure
+        
+        output_struct = self.wyckoff_decoder(lattice_params)
+
+        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
+
 
     def get_all_text_reps(self, decimal_places: int = 2):
         """
