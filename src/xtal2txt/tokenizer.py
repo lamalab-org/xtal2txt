@@ -3,9 +3,11 @@ import re
 import json
 from pathlib import Path
 
+
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from tokenizers import Tokenizer
+
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -14,6 +16,7 @@ COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
 CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
 CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
 ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
+
 
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
