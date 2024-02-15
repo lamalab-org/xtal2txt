@@ -1,10 +1,10 @@
 import pytest
-from xtal2txt.tokenizer import Crystal_llm_Tokenizer
+from xtal2txt.tokenizer import CrysllmTokenizer
 
 
 @pytest.fixture
 def tokenizer(scope="module"):
-    return Crystal_llm_Tokenizer()
+    return CrysllmTokenizer()
 
 def test_tokenize(tokenizer):
     input_string = "5.6 5.6 5.6\n90 90 90\nN0+\n0.48 0.98 0.52\nN0+\n0.98 0.52 0.48\nN0+\n0.02 0.02 0.02\nN0+\n0.52 0.48 0.98"

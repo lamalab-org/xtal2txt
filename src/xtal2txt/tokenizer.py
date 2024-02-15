@@ -3,7 +3,11 @@ import re
 import json
 from pathlib import Path
 
-from transformers import PreTrainedTokenizer
+
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
+
+from tokenizers import Tokenizer
+
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +15,9 @@ SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
 COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
 CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
 CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
+ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
+
+
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(self, vocab_file, model_max_length=None, padding_length=None, **kwargs):
@@ -90,6 +97,7 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         self.save_vocabulary(os.path.dirname(self.vocab_file))
 
     def save_vocabulary(self, save_directory, filename_prefix=None):
+        """Save the vocabulary, ensures vocabularies are not overwritten. Filename follow the convention {index}-{filename_prefix}.json. Index keeps track of the latest vocabulary saved."""
         index = 0
         if os.path.isdir(save_directory):
             vocab_files = list(filter(lambda x: x.endswith(".json"), os.listdir(save_directory)))
@@ -148,9 +156,35 @@ class CifTokenizer(Xtal2txtTokenizer):
     def convert_tokens_to_string(self, tokens):
         return ''.join(tokens)
 
-class Crystal_llm_Tokenizer(Xtal2txtTokenizer):
+class CrysllmTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=CRYSTAL_LLM_VOCAB, model_max_length=None, padding_length=None, **kwargs):
-        super(Crystal_llm_Tokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
+        super(CrysllmTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
 
     def convert_tokens_to_string(self, tokens):
         return ''.join(tokens)
+
+
+class RobocrysTokenizer():
+    """Tokenizer for Robocrystallographer. Would be BPE tokenizer.
+    trained on the Robocrystallographer dataset.
+    TODO: Implement this tokenizer.
+    """
+    def __init__(self, vocab_file=ROBOCRYS_VOCAB, **kwargs):
+            tokenizer = Tokenizer.from_file(vocab_file)
+            wrapped_tokenizer = PreTrainedTokenizerFast(tokenizer_object=tokenizer)
+            self._tokenizer = wrapped_tokenizer
+
+
+    def tokenize(self, text):
+        return self._tokenizer.tokenize(text)
+
+    def encode(self, text):
+        return self._tokenizer.encode(text)
+
+    def decode(self, token_ids, skip_special_tokens=True):
+        # Check if token_ids is a string and convert it to a list of integers
+        if isinstance(token_ids, str):
+            token_ids = [int(token_ids)]
+        return self._tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
+    
+
