@@ -22,17 +22,17 @@ def test_wyckoff_matcher() -> None:
     results = []
     for i in range(10):
         if N2.wyckoff_matcher(lattice_params=True):
-            result.append(True)
+            results.append(True)
             break
     
     for i in range(10):
         if srtio3_p1.wyckoff_matcher(lattice_params=True):
-            result.append(True)
+            results.append(True)
             break
     
     for i in range(10):
         if incus2_p1.wyckoff_matcher(lattice_params=True):
-            result.append(True)
+            results.append(True)
             break
     
     assert [True, True, True] == results
