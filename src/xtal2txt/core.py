@@ -339,7 +339,7 @@ class TextRep:
         xtal_struc = pyxtal()
 
         if lattice_params:
-            a, b, c, alpha, beta, gamma = self.get_parameters()
+            a, b, c, alpha, beta, gamma = self.get_lattice_parameters()
             cell = Lattice.from_para(float(a), float(b), float(c), float(alpha), float(beta), float(gamma))
             xtal_struc.from_random(dimensions,
                                 spg,
