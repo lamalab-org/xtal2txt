@@ -380,7 +380,7 @@ class TextRep:
         
         output_struct = self.wyckoff_decoder(lattice_params)
 
-        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
+        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit_anonymous(output_struct, original_struct)
 
 
     def get_all_text_reps(self, decimal_places: int = 2):
