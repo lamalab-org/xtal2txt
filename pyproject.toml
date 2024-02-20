@@ -30,6 +30,8 @@ dependencies = [
     "robocrys>=0.2.8",
     "matminer @ git+https://github.com/hackingmaterials/matminer.git",
     "transformers>=4.37.2",
+    "pyshtools==4.10",
+    "pyxtal==0.5.7",
 ]
 requires-python = ">=3.9,<3.11"
 readme = "README.md"
