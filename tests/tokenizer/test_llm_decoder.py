@@ -6,7 +6,7 @@ import os
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-N2: TextRep.from_input(os.path.join(THIS_DIR, "..", "data", "N2_p1.cif"))
+N2 = TextRep.from_input(os.path.join(THIS_DIR, "..", "data", "N2_p1.cif"))
 Sr = TextRep.from_input(os.path.join(THIS_DIR, "..", "data", "SrTiO3_p1.cif"))
 In = TextRep.from_input(os.path.join(THIS_DIR, "..", "data", "InCuS2_p1.cif"))
 Tl = TextRep.from_input(os.path.join(THIS_DIR, "..", "data", "TlCr5Se8_p1.cif"))
