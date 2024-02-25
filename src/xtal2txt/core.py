@@ -10,7 +10,6 @@ from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
 from robocrys import StructureCondenser, StructureDescriber
-from pyxtal.lattice import Lattice as pyLattice
 
 
 class TextRep:
