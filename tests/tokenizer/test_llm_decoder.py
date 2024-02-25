@@ -1,5 +1,5 @@
 import pytest
-from ciftostring import TextRep
+from xtal2txt.core import TextRep
 from pymatgen.core.structure import Structure as pyStructure
 import os
 
