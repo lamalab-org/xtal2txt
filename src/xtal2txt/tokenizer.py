@@ -94,7 +94,8 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
             if value not in self.vocab:
                 setattr(self, token, value)
                 self.vocab[value] = len(self.vocab)
-        self.save_vocabulary(os.path.dirname(self.vocab_file))
+        #self.save_vocabulary(os.path.dirname(self.vocab_file))
+        #self.save_vocabulary(save_directory="./")
 
     def save_vocabulary(self, save_directory, filename_prefix=None):
         """Save the vocabulary, ensures vocabularies are not overwritten. Filename follow the convention {index}-{filename_prefix}.json. Index keeps track of the latest vocabulary saved."""
