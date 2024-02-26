@@ -358,6 +358,69 @@ class TextRep:
 
         return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
 
+    
+    def cif_string_decoder_sym(self, input: str):
+        """
+        Returning a pymatgen structure out of a string format of a symmetrized cif file.
+
+        Params:
+            input: str
+                String to obtain the items needed for the structure.
+
+        Returns:
+            pymatgen.core.structure.Structure
+        """
+        entities = input.split("\n")[:-1]
+
+        params = []
+        for i in range(1, 8):
+            params.append(entities[i].split("   ")[1])
+
+        spg = params[0]
+        params = params[1:]
+        lattice = Lattice.from_parameters(a=float(params[0]),
+                                        b=float(params[1]),
+                                        c=float(params[2]),
+                                        alpha=float(params[3]),
+                                        beta=float(params[4]),
+                                        gamma=float(params[5]))
+
+        elements = []
+        m_coord = []
+        atoms = entities[entities.index(' _atom_site_occupancy') + 1:]
+        for atom in atoms:
+            ls = atom.split("  ")
+            elements.append(ls[1])
+            m_coord.append([float(ls[4]), float(ls[5]), float(ls[6])])
+
+        # print(atoms)
+
+        return Structure.from_spacegroup(spg, lattice, elements, m_coord)
+
+
+    def cif_string_matcher_sym(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell  = True, scale = True, allow_subset = True, attempt_supercell = True):
+        """
+        To check if pymatgen object from the original cif file match with the generated...
+        pymatgen structure from cif_string_decoder_sym method out of string cif representation...
+        using fit() method of StructureMatcher module in pymatgen package.
+
+        Params:
+            input: str
+                String to obtain the items needed for the structure.
+
+            StructureMatcher module can be access in below link with its parameters:
+                https://pymatgen.org/pymatgen.analysis.html#pymatgen.analysis.structure_matcher.StructureMatcher.get_mapping
+    
+        Returns:
+            StructureMatcher().fit(): bool
+        """
+
+        original_struct = self.structure
+        
+        output_struct = self.cif_string_decoder_sym(input)
+
+        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
+
 
     def get_all_text_reps(self, decimal_places: int = 2):
         """
