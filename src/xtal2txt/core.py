@@ -10,7 +10,7 @@ from invcryrep.invcryrep import InvCryRep
 from robocrys import StructureCondenser, StructureDescriber
 from pyxtal import pyxtal
 from pymatgen.analysis.structure_matcher import StructureMatcher
-from pyxtal.lattice import Lattice
+from pyxtal.lattice import Lattice as pyLattice
 
 
 class TextRep:
@@ -340,7 +340,7 @@ class TextRep:
 
         if lattice_params:
             a, b, c, alpha, beta, gamma = self.get_lattice_parameters()
-            cell = Lattice.from_para(float(a), float(b), float(c), float(alpha), float(beta), float(gamma))
+            cell = pyLattice.from_para(float(a), float(b), float(c), float(alpha), float(beta), float(gamma))
             xtal_struc.from_random(dimensions,
                                 spg,
                                 atoms,
@@ -373,7 +373,7 @@ class TextRep:
                 To specify using lattice parameters in the wyckoff_decoder method.
 
         Returns:
-            StructureMatcher().fit(): bool
+            StructureMatcher().fit_anonymous(): bool
         """
 
         original_struct = self.structure
