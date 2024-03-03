@@ -239,6 +239,39 @@ class TextRep:
     def get_wycryst():
         pass
 
+
+    def get_atom_params(self, lattice_params: bool = False, decimal_places: int = 2):
+        """
+        Generating a string with the elements of composition inside the crystal lattice with the option to...
+        get the lattice parameters as angles (int) and lengths (float) in a string with a space...
+        between them
+
+        Params:
+            lattice_params: boolean, optional 
+                To specify whether use lattice parameters in generating crystal structure.
+                Defaults to False
+            decimal_places : int, optional, 
+                to specify the rounding digit for float numbers.
+                Defaults to 2
+        
+        Returns:
+            output: str
+                An oneline string.
+        """
+        
+        output = ""
+        for site in self.structure.sites:
+            output += site.specie.element.symbol + " "
+
+        if lattice_params:
+            params = self.get_lattice_parameters(decimal_places=decimal_places)
+            params[3:] = [str(int(float(i))) for i in params[3:]]
+            for i in [3, 4, 5, 0, 1, 2]:
+                output += params[i] + " "
+
+        return output[:-1]
+    
+    
     def get_all_text_reps(self, decimal_places: int = 2):
         """
         Returns all the Text representations of the crystal structure in a dictionary.
