@@ -3,7 +3,9 @@ from typing import List, Union
 from pathlib import Path
 
 from pymatgen.core import Structure
+from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.io.cif import CifWriter
 from invcryrep.invcryrep import InvCryRep
 from robocrys import StructureCondenser, StructureDescriber
@@ -236,8 +238,189 @@ class TextRep:
         condensed_structure = condenser.condense_structure(self.structure)
         return describer.describe(condensed_structure)
 
+
     def get_wycryst():
         pass
+
+
+    def llm_decoder(self, input: str):
+        """
+        Returning pymatgen structure out of multi-line representation.
+
+        Params:
+            input: str
+                String to obtain the items needed for the structure.
+
+        Returns:
+            pymatgen.core.structure.Structure
+        """
+        entities = input.split("\n")
+        lengths = entities[0].split(" ")
+        angles = entities[1].split(" ")
+        lattice = Lattice.from_parameters(a=float(lengths[0]),
+                                        b=float(lengths[1]),
+                                        c=float(lengths[2]),
+                                        alpha=float(angles[0]),
+                                        beta=float(angles[1]),
+                                        gamma=float(angles[2]))
+        
+        elements = entities[2::2]
+        coordinates = entities[3::2]
+        m_coord = []
+        for i in coordinates:
+            s = [float(j) for j in i.split(" ")]
+            m_coord.append(s)
+
+        return Structure(lattice, elements, m_coord)
+
+
+    def llm_matcher(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell = True, 
+                    scale = True, allow_subset = True, attempt_supercell = True):
+        """
+        To check if pymatgen object from the original cif file match with the generated...
+        pymatgen structure from llm_decoder method out of llm representation...
+        using fit() method of StructureMatcher module in pymatgen package.
+
+        Params:
+            input: str
+                String to obtain the items needed for the structure.
+
+            StructureMatcher module can be access in below link with its parameters:
+                https://pymatgen.org/pymatgen.analysis.html#pymatgen.analysis.structure_matcher.StructureMatcher.get_mapping
+    
+        Returns:
+            StructureMatcher().fit(): bool
+        """
+
+        original_struct = self.structure
+        
+        output_struct = self.llm_decoder(input)
+
+        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
+
+
+    def cif_string_decoder_p1(self, input: str):
+        """
+        Returning a pymatgen structure out of a string format of a cif file.
+
+        Params:
+            input: str
+                String to obtain the items needed for the structure.
+
+        Returns:
+            pymatgen.core.structure.Structure
+        """
+        entities = input.split("\n")[:-1]
+        
+        params = []
+        for i in range(2, 8):
+            params.append(entities[i].split("   ")[1])
+
+        lattice = Lattice.from_parameters(a=float(params[0]),
+                                        b=float(params[1]),
+                                        c=float(params[2]),
+                                        alpha=float(params[3]),
+                                        beta=float(params[4]),
+                                        gamma=float(params[5]))
+        
+        elements = []
+        m_coord = []
+        atoms = entities[entities.index(' _atom_site_occupancy') + 1:]
+        for atom in atoms:
+            ls = atom.split("  ")
+            elements.append(ls[1])
+            m_coord.append([float(ls[4]), float(ls[5]), float(ls[6])])
+        
+        return Structure(lattice, elements, m_coord)
+
+    
+    def cif_string_matcher_p1(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell = True, 
+                    scale = True, allow_subset = True, attempt_supercell = True):
+        """
+        To check if pymatgen object from the original cif file match with the generated...
+        pymatgen structure from cif_string_decoder_p1 method out of string cif representation...
+        using fit() method of StructureMatcher module in pymatgen package.
+
+        Params:
+            input: str
+                String to obtain the items needed for the structure.
+
+            StructureMatcher module can be access in below link with its parameters:
+                https://pymatgen.org/pymatgen.analysis.html#pymatgen.analysis.structure_matcher.StructureMatcher.get_mapping
+    
+        Returns:
+            StructureMatcher().fit(): bool
+        """
+
+        original_struct = self.structure
+        
+        output_struct = self.cif_string_decoder_p1(input)
+
+        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
+
+    
+    def cif_string_decoder_sym(self, input: str):
+        """
+        Returning a pymatgen structure out of a string format of a symmetrized cif file.
+
+        Params:
+            input: str
+                String to obtain the items needed for the structure.
+
+        Returns:
+            pymatgen.core.structure.Structure
+        """
+        entities = input.split("\n")[:-1]
+
+        params = []
+        for i in range(1, 8):
+            params.append(entities[i].split("   ")[1])
+
+        spg = params[0]
+        params = params[1:]
+        lattice = Lattice.from_parameters(a=float(params[0]),
+                                        b=float(params[1]),
+                                        c=float(params[2]),
+                                        alpha=float(params[3]),
+                                        beta=float(params[4]),
+                                        gamma=float(params[5]))
+
+        elements = []
+        m_coord = []
+        atoms = entities[entities.index(' _atom_site_occupancy') + 1:]
+        for atom in atoms:
+            ls = atom.split("  ")
+            elements.append(ls[1])
+            m_coord.append([float(ls[4]), float(ls[5]), float(ls[6])])
+
+        # print(atoms)
+
+        return Structure.from_spacegroup(spg, lattice, elements, m_coord)
+
+
+    def cif_string_matcher_sym(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell  = True, scale = True, allow_subset = True, attempt_supercell = True):
+        """
+        To check if pymatgen object from the original cif file match with the generated...
+        pymatgen structure from cif_string_decoder_sym method out of string cif representation...
+        using fit() method of StructureMatcher module in pymatgen package.
+
+        Params:
+            input: str
+                String to obtain the items needed for the structure.
+
+            StructureMatcher module can be access in below link with its parameters:
+                https://pymatgen.org/pymatgen.analysis.html#pymatgen.analysis.structure_matcher.StructureMatcher.get_mapping
+    
+        Returns:
+            StructureMatcher().fit(): bool
+        """
+
+        original_struct = self.structure
+        
+        output_struct = self.cif_string_decoder_sym(input)
+
+        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
+
 
     def get_all_text_reps(self, decimal_places: int = 2):
         """
