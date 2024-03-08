@@ -360,7 +360,7 @@ class TextRep:
         return pmg_struc
 
     
-    def wyckoff_matcher(self, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell = True, 
+    def wyckoff_matcher(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell = True, 
                     scale = True, allow_subset = True, attempt_supercell = True, lattice_params: bool = False):
         """
         To check if pymatgen object from the original cif file match with the generated...
@@ -379,7 +379,7 @@ class TextRep:
 
         original_struct = self.structure
         
-        output_struct = self.wyckoff_decoder(lattice_params)
+        output_struct = self.wyckoff_decoder(input, lattice_params)
 
         return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit_anonymous(output_struct, original_struct)
 
