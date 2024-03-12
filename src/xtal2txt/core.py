@@ -30,6 +30,9 @@ class TextRep:
         get_cartesian(n=3)
         get_fractional(n=3)
     """
+    backend = InvCryRep()
+    condenser = StructureCondenser()
+    describer = StructureDescriber()
 
     def __init__(self, structure: Structure):
         self.structure = structure
@@ -48,11 +51,18 @@ class TextRep:
         if isinstance(input_data, Structure):
             structure = input_data
 
-        elif isinstance(input_data, (str, Path)) and Path(input_data).is_file():
-            structure = Structure.from_file(str(input_data))
+        elif isinstance(input_data, (str, Path)):
+            try:
+                if Path(input_data).is_file():
+                    structure = Structure.from_file(str(input_data))
+                else:
+                    raise ValueError
+            except (OSError, ValueError):
+                structure = Structure.from_str(str(input_data), "cif")
 
         else:
             structure = Structure.from_str(str(input_data), "cif")
+
         return cls(structure)
     
     @staticmethod
@@ -167,13 +177,13 @@ class TextRep:
         Returns:
             str: The calculated slice.
         """
-        backend = InvCryRep()
+        
         if primitive:
             primitive_structure = (
                 self.structure.get_primitive_structure()
             )  # convert to primitive structure
-            return backend.structure2SLICES(primitive_structure)
-        return backend.structure2SLICES(self.structure)
+            return self.backend.structure2SLICES(primitive_structure)
+        return self.backend.structure2SLICES(self.structure)
 
     def get_composition(self, format="hill") -> str:
         """Return composition in hill format.
@@ -237,11 +247,9 @@ class TextRep:
         TODO: check any post processing for better tokenization (rounding, replacing unicodes etc..)
 
         """
-        condenser = StructureCondenser()
-        describer = StructureDescriber()
 
-        condensed_structure = condenser.condense_structure(self.structure)
-        return describer.describe(condensed_structure)
+        condensed_structure = self.condenser.condense_structure(self.structure)
+        return self.describer.describe(condensed_structure)
 
 
     def get_wyckoff_positions(self):
