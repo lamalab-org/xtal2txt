@@ -236,9 +236,6 @@ class TextRep:
         condensed_structure = condenser.condense_structure(self.structure)
         return describer.describe(condensed_structure)
 
-    def get_wycryst():
-        pass
-
 
     def get_atom_params(self, lattice_params: bool = False, decimal_places: int = 2):
         """
