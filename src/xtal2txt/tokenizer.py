@@ -7,6 +7,7 @@ from pathlib import Path
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from tokenizers import Tokenizer
+from xtal2txt.analysis import ANALYSIS_MASK_TOKENS, SLICE_ANALYSIS_DICT, CRYSTAL_LLM_ANALYSIS_DICT, CIF_ANALYSIS_DICT
 
 
 
@@ -96,6 +97,10 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
                 self.vocab[value] = len(self.vocab)
         self.save_vocabulary(os.path.dirname(self.vocab_file))
 
+    def token_analysis(self,tokens):
+        """This method should be implemented by the Downstream tokenizers."""
+        raise NotImplementedError
+
     def save_vocabulary(self, save_directory, filename_prefix=None):
         """Save the vocabulary, ensures vocabularies are not overwritten. Filename follow the convention {index}-{filename_prefix}.json. Index keeps track of the latest vocabulary saved."""
         index = 0
@@ -139,15 +144,20 @@ class SliceTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=SLICE_VOCAB, model_max_length=None, padding_length=None, **kwargs):
         super(SliceTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
 
-
-
+    def token_analysis(self, list_of_tokens):
+        """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
+            token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
+        analysis_masks = ANALYSIS_MASK_TOKENS
+        token_type = SLICE_ANALYSIS_DICT
+        return [analysis_masks[next((k for k, v in token_type.items() if token in v), None)] for token in list_of_tokens]
+        
 class CompositionTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=COMPOSITION_VOCAB, model_max_length=None, padding_length=None, **kwargs):
         super(CompositionTokenizer, self).__init__(vocab_file, model_max_length=model_max_length, padding_length=padding_length, **kwargs)
 
     def convert_tokens_to_string(self, tokens):
         return ''.join(tokens)
-    
+        
 
 class CifTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=CIF_VOCAB, model_max_length=None, padding_length=None, **kwargs):
@@ -155,6 +165,13 @@ class CifTokenizer(Xtal2txtTokenizer):
 
     def convert_tokens_to_string(self, tokens):
         return ''.join(tokens)
+    
+    def token_analysis(self, list_of_tokens):
+        """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
+            token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
+        analysis_masks = ANALYSIS_MASK_TOKENS
+        token_type = CIF_ANALYSIS_DICT
+        return [analysis_masks[next((k for k, v in token_type.items() if token in v), None)] for token in list_of_tokens]
 
 class CrysllmTokenizer(Xtal2txtTokenizer):
     def __init__(self, vocab_file=CRYSTAL_LLM_VOCAB, model_max_length=None, padding_length=None, **kwargs):
@@ -162,6 +179,13 @@ class CrysllmTokenizer(Xtal2txtTokenizer):
 
     def convert_tokens_to_string(self, tokens):
         return ''.join(tokens)
+    
+    def token_analysis(self, list_of_tokens):
+        """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
+            token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
+        analysis_masks = ANALYSIS_MASK_TOKENS
+        token_type = CRYSTAL_LLM_ANALYSIS_DICT
+        return [analysis_masks[next((k for k, v in token_type.items() if token in v), None)] for token in list_of_tokens]
 
 
 class RobocrysTokenizer():
