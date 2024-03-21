@@ -7,7 +7,7 @@ from pathlib import Path
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from tokenizers import Tokenizer
-from xtal2txt.analysis import ANALYSIS_MASK_TOKENS, SLICE_ANALYSIS_DICT, CRYSTAL_LLM_ANALYSIS_DICT, CIF_ANALYSIS_DICT
+from xtal2txt.analysis import ANALYSIS_MASK_TOKENS, SLICE_ANALYSIS_DICT, CRYSTAL_LLM_ANALYSIS_DICT, CIF_ANALYSIS_DICT, COMPOSITION_ANALYSIS_DICT
 
 
 
@@ -157,6 +157,13 @@ class CompositionTokenizer(Xtal2txtTokenizer):
 
     def convert_tokens_to_string(self, tokens):
         return ''.join(tokens)
+        
+    def token_analysis(self, list_of_tokens):
+        """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
+            token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
+        analysis_masks = ANALYSIS_MASK_TOKENS
+        token_type = COMPOSITION_ANALYSIS_DICT
+        return [analysis_masks[next((k for k, v in token_type.items() if token in v), None)] for token in list_of_tokens]
         
 
 class CifTokenizer(Xtal2txtTokenizer):

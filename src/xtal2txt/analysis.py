@@ -27,6 +27,11 @@ NUMS_ = [
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "+", "-"
     ]
 
+COMPOSITION_ANALYSIS_DICT = {
+    "atoms": ATOM_LIST_,
+    "numbers": NUMS_,
+}
+
 SLICE_ANALYSIS_DICT = {
     "atoms": ATOM_LIST_,
     "directions": [
