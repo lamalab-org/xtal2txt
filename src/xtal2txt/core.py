@@ -671,14 +671,16 @@ class TextRep:
         """
 
         all_reps = {
-            "cif_p1": self._safe_call(self.get_cif_string, format="p1", decimal_places=decimal_places),
-            "cif_symmetrized": self._safe_call(self.get_cif_string, format="symmetrized", decimal_places=decimal_places),
-            "cif_bonding": None,
-            "slice": self._safe_call(self.get_slice),
-            "composition": self._safe_call(self.get_composition),
-            "crystal_llm_rep": self._safe_call(self.get_crystal_llm_rep),
-            "robocrys_rep": self._safe_call(self.get_robocrys_rep),
-            "wycoff_rep": None,
+            "cif_p1": lambda: self._safe_call(self.get_cif_string, format="p1", decimal_places=decimal_places),
+            "cif_symmetrized": lambda: self._safe_call(self.get_cif_string, format="symmetrized", decimal_places=decimal_places),
+            "cif_bonding": lambda: None,
+            "slice": lambda: self._safe_call(self.get_slice),
+            "composition": lambda: self._safe_call(self.get_composition),
+            "crystal_llm_rep": lambda: self._safe_call(self.get_crystal_llm_rep),
+            "robocrys_rep": lambda: self._safe_call(self.get_robocrys_rep),
+            "wycoff_rep": lambda: None,
+            "atoms": lambda: self._safe_call(self.get_atoms_params_rep, lattice_params=False, decimal_places=decimal_places),
+            "atoms_params": lambda: self._safe_call(self.get_atoms_params_rep, lattice_params=True, decimal_places=decimal_places),
         }
 
-        return {rep: all_reps[rep] for rep in requested_reps if rep in all_reps}
+        return {rep: all_reps[rep]() for rep in requested_reps if rep in all_reps}
