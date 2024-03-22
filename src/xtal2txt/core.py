@@ -630,3 +630,27 @@ class TextRep:
             "wycoff_rep": None,
         }
 
+    def get_requested_text_reps(self, requested_reps: List[str], decimal_places: int = 2):
+        """
+        Returns the requested Text representations of the crystal structure in a dictionary.
+
+        Parameters:
+            requested_reps : List of representations to return.
+            decimal_places : Number of decimal places for the cif strings.
+
+        Returns:
+            Dictionary of requested representations.
+        """
+
+        all_reps = {
+            "cif_p1": self._safe_call(self.get_cif_string, format="p1", decimal_places=decimal_places),
+            "cif_symmetrized": self._safe_call(self.get_cif_string, format="symmetrized", decimal_places=decimal_places),
+            "cif_bonding": None,
+            "slice": self._safe_call(self.get_slice),
+            "composition": self._safe_call(self.get_composition),
+            "crystal_llm_rep": self._safe_call(self.get_crystal_llm_rep),
+            "robocrys_rep": self._safe_call(self.get_robocrys_rep),
+            "wycoff_rep": None,
+        }
+
+        return {rep: all_reps[rep] for rep in requested_reps if rep in all_reps}
