@@ -571,6 +571,34 @@ class TextRep:
         return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
 
 
+    def get_atoms_params_rep(self, lattice_params: bool = False, decimal_places: int = 2) -> str:
+        """
+        Generating a string with the elements of composition inside the crystal lattice with the option to
+        get the lattice parameters as angles (int) and lengths (float) in a string with a space
+        between them
+
+        Params:
+            lattice_params: boolean, optional 
+                To specify whether use lattice parameters in generating crystal structure.
+                Defaults to False
+            decimal_places : int, optional, 
+                to specify the rounding digit for float numbers.
+                Defaults to 2
+        
+        Returns:
+            output: str
+                An oneline string.
+        """
+        
+        output = [site.specie.element.symbol for site in self.structure.sites]
+        if lattice_params:
+            params = self.get_lattice_parameters(decimal_places=decimal_places)
+            params[3:] = [str(int(float(i))) for i in params[3:]]
+            output.extend(params)
+
+        return " ".join(output)
+    
+    
     def get_all_text_reps(self, decimal_places: int = 2):
         """
         Returns all the Text representations of the crystal structure in a dictionary.
