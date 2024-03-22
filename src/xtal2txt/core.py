@@ -1,18 +1,19 @@
+import random
 import re
-from typing import List, Union
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
+from typing import List, Union
 
+import numpy as np
+from invcryrep.invcryrep import InvCryRep
+from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 from pymatgen.core.lattice import Lattice
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.io.cif import CifWriter
-from invcryrep.invcryrep import InvCryRep
-from robocrys import StructureCondenser, StructureDescriber
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pyxtal import pyxtal
-from pymatgen.analysis.structure_matcher import StructureMatcher
 from pyxtal.lattice import Lattice as pyLattice
+from robocrys import StructureCondenser, StructureDescriber
 
 
 class TextRep:
@@ -34,11 +35,16 @@ class TextRep:
     condenser = StructureCondenser()
     describer = StructureDescriber()
 
-    def __init__(self, structure: Structure):
+    def __init__(self, structure: Structure, permute_atoms: bool = False, translate_atoms: bool = False, seed_for_transformations: int = 42) -> None:
         self.structure = structure
+        if permute_atoms:
+            self.permute_structure(seed_for_transformations)
+        if translate_atoms:
+            self.translate_structure(seed_for_transformations)
+
 
     @classmethod
-    def from_input(cls, input_data: Union[str, Path, Structure]) -> "TextRep":
+    def from_input(cls, input_data: Union[str, Path, Structure], permute_atoms: bool = False, translate_atoms: bool = False, seed_for_transformations: int = 42)  -> "TextRep":
         """
         Instantiate the TextRep class object with the pymatgen structure from a cif file, a cif string, or a pymatgen Structure object.
 
@@ -63,7 +69,7 @@ class TextRep:
         else:
             structure = Structure.from_str(str(input_data), "cif")
 
-        return cls(structure)
+        return cls(structure, permute_atoms, translate_atoms, seed_for_transformations)
     
     @staticmethod
     def _safe_call(func, *args, **kwargs):
@@ -89,6 +95,37 @@ class TextRep:
         rounded_numbers = [round(float(match), decimal_places) for match in matches]
         new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
         return new_string
+    
+    # def get_permuted_structure(self, seed: int = 42):
+    #     """
+    #     Randomly permute the order of atoms in a structure.
+    #     """
+    #     random.seed(seed) 
+
+    #     shuffled_structure = self.structure.copy()
+    #     sites = shuffled_structure.sites
+    #     random.shuffle(sites)
+    #     shuffled_structure.sites = sites
+    #     return shuffled_structure
+
+    def permute_structure(self, seed: int = 42):
+        """
+        Randomly permute the order of atoms in a structure.
+        """
+        random.seed(seed) 
+        sites = self.structure.sites
+        random.shuffle(sites)
+        self.structure.sites = sites
+
+    def translate_structure(self, seed: int = 42):
+        """
+        Randomly translate the atoms in a structure.
+        """
+        random.seed(seed)
+        self.structure.translate_sites(
+            indices=range(len(self.structure.sites)), vector=np.random.uniform(size=(3,))
+        )
+  
 
     def get_cif_string(self, format: str = "symmetrized", decimal_places: int = 3) -> str:
         """
@@ -199,7 +236,7 @@ class TextRep:
             composition = composition_string.replace(" ", "")
         return composition
 
-    def get_crystal_llm_rep(self):
+    def get_crystal_llm_rep(self, permute_atoms:bool = False, translate_atoms:bool = False,) -> str:
         """
         Code adopted from https://github.com/facebookresearch/crystal-llm/blob/main/llama_finetune.py
         https://openreview.net/pdf?id=0r5DE2ZSwJ
@@ -214,6 +251,7 @@ class TextRep:
         coordinates as floats in a separate line.
 
         """
+        
         # Randomly translate within the unit cell
         # self.structure.translate_sites(
         #     indices=range(len(self.structure.sites)), vector=np.random.uniform(size=(3,))
@@ -223,6 +261,11 @@ class TextRep:
         angles = self.structure.lattice.parameters[3:]
         atom_ids = self.structure.species
         frac_coords = self.structure.frac_coords
+
+        if permute_atoms:
+            atom_coord_pairs = list(zip(atom_ids, frac_coords))
+            random.shuffle(atom_coord_pairs)
+            atom_ids, frac_coords = zip(*atom_coord_pairs)
 
         crystal_str = (
             " ".join(["{0:.1f}".format(x) for x in lengths])
