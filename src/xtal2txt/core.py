@@ -571,10 +571,10 @@ class TextRep:
         return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
 
 
-    def get_atom_params(self, lattice_params: bool = False, decimal_places: int = 2):
+    def get_atoms_params_rep(self, lattice_params: bool = False, decimal_places: int = 2):
         """
-        Generating a string with the elements of composition inside the crystal lattice with the option to...
-        get the lattice parameters as angles (int) and lengths (float) in a string with a space...
+        Generating a string with the elements of composition inside the crystal lattice with the option to
+        get the lattice parameters as angles (int) and lengths (float) in a string with a space
         between them
 
         Params:
@@ -590,17 +590,13 @@ class TextRep:
                 An oneline string.
         """
         
-        output = ""
-        for site in self.structure.sites:
-            output += site.specie.element.symbol + " "
-
+        output = [site.specie.element.symbol for site in self.structure.sites]
         if lattice_params:
             params = self.get_lattice_parameters(decimal_places=decimal_places)
             params[3:] = [str(int(float(i))) for i in params[3:]]
-            for i in [3, 4, 5, 0, 1, 2]:
-                output += params[i] + " "
+            output.extend(params)
 
-        return output[:-1]
+        return " ".join(output)
     
     
     def get_all_text_reps(self, decimal_places: int = 2):
