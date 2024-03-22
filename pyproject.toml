@@ -26,7 +26,7 @@ authors = [
 ]
 dependencies = [
     "pymatgen>=2023.9.25",
-    "slices>=1.4.9",
+    "slices",
     "robocrys>=0.2.8",
     "matminer @ git+https://github.com/hackingmaterials/matminer.git",
     "transformers>=4.37.2",

@@ -1,18 +1,19 @@
+import random
 import re
-from typing import List, Union
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
+from typing import List, Union
 
+import numpy as np
+from invcryrep.invcryrep import InvCryRep
+from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 from pymatgen.core.lattice import Lattice
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.io.cif import CifWriter
-from invcryrep.invcryrep import InvCryRep
-from robocrys import StructureCondenser, StructureDescriber
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pyxtal import pyxtal
-from pymatgen.analysis.structure_matcher import StructureMatcher
 from pyxtal.lattice import Lattice as pyLattice
+from robocrys import StructureCondenser, StructureDescriber
 
 
 class TextRep:
@@ -30,15 +31,32 @@ class TextRep:
         get_cartesian(n=3)
         get_fractional(n=3)
     """
+
     backend = InvCryRep()
     condenser = StructureCondenser()
     describer = StructureDescriber()
 
-    def __init__(self, structure: Structure):
+    def __init__(
+        self,
+        structure: Structure,
+        permute_atoms: bool = False,
+        translate_atoms: bool = False,
+        seed_for_transformations: int = 42,
+    ) -> None:
         self.structure = structure
+        if permute_atoms:
+            self.permute_structure(seed_for_transformations)
+        if translate_atoms:
+            self.translate_structure(seed_for_transformations)
 
     @classmethod
-    def from_input(cls, input_data: Union[str, Path, Structure]) -> "TextRep":
+    def from_input(
+        cls,
+        input_data: Union[str, Path, Structure],
+        permute_atoms: bool = False,
+        translate_atoms: bool = False,
+        seed_for_transformations: int = 42,
+    ) -> "TextRep":
         """
         Instantiate the TextRep class object with the pymatgen structure from a cif file, a cif string, or a pymatgen Structure object.
 
@@ -63,8 +81,8 @@ class TextRep:
         else:
             structure = Structure.from_str(str(input_data), "cif")
 
-        return cls(structure)
-    
+        return cls(structure, permute_atoms, translate_atoms, seed_for_transformations)
+
     @staticmethod
     def _safe_call(func, *args, **kwargs):
         try:
@@ -87,10 +105,45 @@ class TextRep:
         pattern = r"\b\d+\.\d+\b"
         matches = re.findall(pattern, original_string)
         rounded_numbers = [round(float(match), decimal_places) for match in matches]
-        new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
+        new_string = re.sub(
+            pattern, lambda x: str(rounded_numbers.pop(0)), original_string
+        )
         return new_string
 
-    def get_cif_string(self, format: str = "symmetrized", decimal_places: int = 3) -> str:
+    # def get_permuted_structure(self, seed: int = 42):
+    #     """
+    #     Randomly permute the order of atoms in a structure.
+    #     """
+    #     random.seed(seed)
+
+    #     shuffled_structure = self.structure.copy()
+    #     sites = shuffled_structure.sites
+    #     random.shuffle(sites)
+    #     shuffled_structure.sites = sites
+    #     return shuffled_structure
+
+    def permute_structure(self, seed: int = 42):
+        """
+        Randomly permute the order of atoms in a structure.
+        """
+        random.seed(seed)
+        sites = self.structure.sites
+        random.shuffle(sites)
+        self.structure.sites = sites
+
+    def translate_structure(self, seed: int = 42):
+        """
+        Randomly translate the atoms in a structure.
+        """
+        random.seed(seed)
+        self.structure.translate_sites(
+            indices=range(len(self.structure.sites)),
+            vector=np.random.uniform(size=(3,)),
+        )
+
+    def get_cif_string(
+        self, format: str = "symmetrized", decimal_places: int = 3
+    ) -> str:
         """
         Generate CIF as string in multi-line format.
 
@@ -114,7 +167,9 @@ class TextRep:
             symmetrized_structure = symmetry_analyzer.get_symmetrized_structure()
             cif_string = str(
                 CifWriter(
-                    symmetrized_structure, symprec=0.1, significant_figures=decimal_places
+                    symmetrized_structure,
+                    symprec=0.1,
+                    significant_figures=decimal_places,
                 ).ciffile
             )
             cif = "\n".join(cif_string.split("\n")[1:])
@@ -138,7 +193,9 @@ class TextRep:
         Returns:
             A list of strings of the mentioned parameters.
         """
-        return [str(round(i, decimal_places)) for i in self.structure.lattice.parameters]
+        return [
+            str(round(i, decimal_places)) for i in self.structure.lattice.parameters
+        ]
 
     def get_coords(self, name: str = "cartesian", decimal_places: int = 3) -> List[str]:
         """
@@ -177,7 +234,7 @@ class TextRep:
         Returns:
             str: The calculated slice.
         """
-        
+
         if primitive:
             primitive_structure = (
                 self.structure.get_primitive_structure()
@@ -199,7 +256,11 @@ class TextRep:
             composition = composition_string.replace(" ", "")
         return composition
 
-    def get_crystal_llm_rep(self):
+    def get_crystal_llm_rep(
+        self,
+        permute_atoms: bool = False,
+        translate_atoms: bool = False,
+    ) -> str:
         """
         Code adopted from https://github.com/facebookresearch/crystal-llm/blob/main/llama_finetune.py
         https://openreview.net/pdf?id=0r5DE2ZSwJ
@@ -214,6 +275,7 @@ class TextRep:
         coordinates as floats in a separate line.
 
         """
+
         # Randomly translate within the unit cell
         # self.structure.translate_sites(
         #     indices=range(len(self.structure.sites)), vector=np.random.uniform(size=(3,))
@@ -223,6 +285,11 @@ class TextRep:
         angles = self.structure.lattice.parameters[3:]
         atom_ids = self.structure.species
         frac_coords = self.structure.frac_coords
+
+        if permute_atoms:
+            atom_coord_pairs = list(zip(atom_ids, frac_coords))
+            random.shuffle(atom_coord_pairs)
+            atom_ids, frac_coords = zip(*atom_coord_pairs)
 
         crystal_str = (
             " ".join(["{0:.1f}".format(x) for x in lengths])
@@ -238,7 +305,6 @@ class TextRep:
         )
 
         return crystal_str
-        
 
     def get_robocrys_rep(self):
         """
@@ -251,13 +317,12 @@ class TextRep:
         condensed_structure = self.condenser.condense_structure(self.structure)
         return self.describer.describe(condensed_structure)
 
-
     def get_wyckoff_positions(self):
         """
         Getting wyckoff positions of the elements in the unit cell as the combination of...
         number and letter.
 
-        Returns: 
+        Returns:
             ouput: str
                 A multi-line string that contain elements of the unit cell along with their...
                 wyckoff position in each line.
@@ -271,14 +336,18 @@ class TextRep:
         data = []
 
         for i in range(len(wyckoff_sites["wyckoffs"])):
-            sub_data = element_symbols[i], wyckoff_sites["wyckoffs"][i], wyckoff_sites["equivalent_atoms"][i]
+            sub_data = (
+                element_symbols[i],
+                wyckoff_sites["wyckoffs"][i],
+                wyckoff_sites["equivalent_atoms"][i],
+            )
             data.append(sub_data)
-        
+
         a = dict(Counter(data))
 
         output = ""
         for i, j in a.items():
-            output += str(i[0]) + " " +  str(j) + str(i[1]) + "\n"
+            output += str(i[0]) + " " + str(j) + str(i[1]) + "\n"
 
         return output
 
@@ -302,8 +371,7 @@ class TextRep:
 
         return output
 
-    
-    def wyckoff_decoder(self, input: str, lattice_params: bool = False): 
+    def wyckoff_decoder(self, input: str, lattice_params: bool = False):
         """
         Generating a pymatgen object from the output of the get_wyckoff_rep() method by using...
         pyxtal package. In this method, all data are extracted from the multi-line string of the...
@@ -315,7 +383,7 @@ class TextRep:
             lattice_params: boolean
                 To specify whether use lattice parameters in generating crystal structure.
 
-        Returns: 
+        Returns:
             pmg_struc: pymatgen.core.structure.Structure
         """
 
@@ -331,8 +399,8 @@ class TextRep:
         atoms = []
         composition = []
         for el in elements:
-            atom = el.rstrip('0123456789')
-            number = el[len(atom):]
+            atom = el.rstrip("0123456789")
+            number = el[len(atom) :]
             atoms.append(atom)
             composition.append(int(number))
 
@@ -342,34 +410,38 @@ class TextRep:
             for site in wyckoff_sites:
                 if atom in site:
                     sub_site.append(site.split()[1])
-            
+
             sites.append(sub_site)
 
         xtal_struc = pyxtal()
 
         if lattice_params:
             a, b, c, alpha, beta, gamma = self.get_lattice_parameters()
-            cell = pyLattice.from_para(float(a), float(b), float(c), float(alpha), float(beta), float(gamma))
-            xtal_struc.from_random(dimensions,
-                                spg,
-                                atoms,
-                                composition,
-                                sites=sites,
-                                lattice=cell)
+            cell = pyLattice.from_para(
+                float(a), float(b), float(c), float(alpha), float(beta), float(gamma)
+            )
+            xtal_struc.from_random(
+                dimensions, spg, atoms, composition, sites=sites, lattice=cell
+            )
         else:
-            xtal_struc.from_random(dimensions,
-                                spg,
-                                atoms,
-                                composition,
-                                sites=sites)
+            xtal_struc.from_random(dimensions, spg, atoms, composition, sites=sites)
 
         pmg_struc = xtal_struc.to_pymatgen()
 
         return pmg_struc
 
-    
-    def wyckoff_matcher(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell = True, 
-                    scale = True, allow_subset = True, attempt_supercell = True, lattice_params: bool = False):
+    def wyckoff_matcher(
+        self,
+        input: str,
+        ltol=0.2,
+        stol=0.5,
+        angle_tol=5,
+        primitive_cell=True,
+        scale=True,
+        allow_subset=True,
+        attempt_supercell=True,
+        lattice_params: bool = False,
+    ):
         """
         To check if pymatgen object from the original cif file match with the generated...
         pymatgen structure from wyckoff_decoder method out of wyckoff representation...
@@ -386,11 +458,18 @@ class TextRep:
         """
 
         original_struct = self.structure
-        
+
         output_struct = self.wyckoff_decoder(input, lattice_params)
 
-        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit_anonymous(output_struct, original_struct)
-
+        return StructureMatcher(
+            ltol,
+            stol,
+            angle_tol,
+            primitive_cell,
+            scale,
+            allow_subset,
+            attempt_supercell,
+        ).fit_anonymous(output_struct, original_struct)
 
     def llm_decoder(self, input: str):
         """
@@ -406,13 +485,15 @@ class TextRep:
         entities = input.split("\n")
         lengths = entities[0].split(" ")
         angles = entities[1].split(" ")
-        lattice = Lattice.from_parameters(a=float(lengths[0]),
-                                        b=float(lengths[1]),
-                                        c=float(lengths[2]),
-                                        alpha=float(angles[0]),
-                                        beta=float(angles[1]),
-                                        gamma=float(angles[2]))
-        
+        lattice = Lattice.from_parameters(
+            a=float(lengths[0]),
+            b=float(lengths[1]),
+            c=float(lengths[2]),
+            alpha=float(angles[0]),
+            beta=float(angles[1]),
+            gamma=float(angles[2]),
+        )
+
         elements = entities[2::2]
         coordinates = entities[3::2]
         m_coord = []
@@ -422,9 +503,17 @@ class TextRep:
 
         return Structure(lattice, elements, m_coord)
 
-
-    def llm_matcher(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell = True, 
-                    scale = True, allow_subset = True, attempt_supercell = True):
+    def llm_matcher(
+        self,
+        input: str,
+        ltol=0.2,
+        stol=0.5,
+        angle_tol=5,
+        primitive_cell=True,
+        scale=True,
+        allow_subset=True,
+        attempt_supercell=True,
+    ):
         """
         To check if pymatgen object from the original cif file match with the generated...
         pymatgen structure from llm_decoder method out of llm representation...
@@ -436,17 +525,24 @@ class TextRep:
 
             StructureMatcher module can be access in below link with its parameters:
                 https://pymatgen.org/pymatgen.analysis.html#pymatgen.analysis.structure_matcher.StructureMatcher.get_mapping
-    
+
         Returns:
             StructureMatcher().fit(): bool
         """
 
         original_struct = self.structure
-        
+
         output_struct = self.llm_decoder(input)
 
-        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
-
+        return StructureMatcher(
+            ltol,
+            stol,
+            angle_tol,
+            primitive_cell,
+            scale,
+            allow_subset,
+            attempt_supercell,
+        ).fit(output_struct, original_struct)
 
     def cif_string_decoder_p1(self, input: str):
         """
@@ -460,31 +556,41 @@ class TextRep:
             pymatgen.core.structure.Structure
         """
         entities = input.split("\n")[:-1]
-        
+
         params = []
         for i in range(2, 8):
             params.append(entities[i].split("   ")[1])
 
-        lattice = Lattice.from_parameters(a=float(params[0]),
-                                        b=float(params[1]),
-                                        c=float(params[2]),
-                                        alpha=float(params[3]),
-                                        beta=float(params[4]),
-                                        gamma=float(params[5]))
-        
+        lattice = Lattice.from_parameters(
+            a=float(params[0]),
+            b=float(params[1]),
+            c=float(params[2]),
+            alpha=float(params[3]),
+            beta=float(params[4]),
+            gamma=float(params[5]),
+        )
+
         elements = []
         m_coord = []
-        atoms = entities[entities.index(' _atom_site_occupancy') + 1:]
+        atoms = entities[entities.index(" _atom_site_occupancy") + 1 :]
         for atom in atoms:
             ls = atom.split("  ")
             elements.append(ls[1])
             m_coord.append([float(ls[4]), float(ls[5]), float(ls[6])])
-        
+
         return Structure(lattice, elements, m_coord)
 
-    
-    def cif_string_matcher_p1(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell = True, 
-                    scale = True, allow_subset = True, attempt_supercell = True):
+    def cif_string_matcher_p1(
+        self,
+        input: str,
+        ltol=0.2,
+        stol=0.5,
+        angle_tol=5,
+        primitive_cell=True,
+        scale=True,
+        allow_subset=True,
+        attempt_supercell=True,
+    ):
         """
         To check if pymatgen object from the original cif file match with the generated...
         pymatgen structure from cif_string_decoder_p1 method out of string cif representation...
@@ -496,18 +602,25 @@ class TextRep:
 
             StructureMatcher module can be access in below link with its parameters:
                 https://pymatgen.org/pymatgen.analysis.html#pymatgen.analysis.structure_matcher.StructureMatcher.get_mapping
-    
+
         Returns:
             StructureMatcher().fit(): bool
         """
 
         original_struct = self.structure
-        
+
         output_struct = self.cif_string_decoder_p1(input)
 
-        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
+        return StructureMatcher(
+            ltol,
+            stol,
+            angle_tol,
+            primitive_cell,
+            scale,
+            allow_subset,
+            attempt_supercell,
+        ).fit(output_struct, original_struct)
 
-    
     def cif_string_decoder_sym(self, input: str):
         """
         Returning a pymatgen structure out of a string format of a symmetrized cif file.
@@ -527,16 +640,18 @@ class TextRep:
 
         spg = params[0]
         params = params[1:]
-        lattice = Lattice.from_parameters(a=float(params[0]),
-                                        b=float(params[1]),
-                                        c=float(params[2]),
-                                        alpha=float(params[3]),
-                                        beta=float(params[4]),
-                                        gamma=float(params[5]))
+        lattice = Lattice.from_parameters(
+            a=float(params[0]),
+            b=float(params[1]),
+            c=float(params[2]),
+            alpha=float(params[3]),
+            beta=float(params[4]),
+            gamma=float(params[5]),
+        )
 
         elements = []
         m_coord = []
-        atoms = entities[entities.index(' _atom_site_occupancy') + 1:]
+        atoms = entities[entities.index(" _atom_site_occupancy") + 1 :]
         for atom in atoms:
             ls = atom.split("  ")
             elements.append(ls[1])
@@ -546,8 +661,17 @@ class TextRep:
 
         return Structure.from_spacegroup(spg, lattice, elements, m_coord)
 
-
-    def cif_string_matcher_sym(self, input: str, ltol = 0.2, stol = 0.5, angle_tol = 5, primitive_cell  = True, scale = True, allow_subset = True, attempt_supercell = True):
+    def cif_string_matcher_sym(
+        self,
+        input: str,
+        ltol=0.2,
+        stol=0.5,
+        angle_tol=5,
+        primitive_cell=True,
+        scale=True,
+        allow_subset=True,
+        attempt_supercell=True,
+    ):
         """
         To check if pymatgen object from the original cif file match with the generated...
         pymatgen structure from cif_string_decoder_sym method out of string cif representation...
@@ -559,37 +683,46 @@ class TextRep:
 
             StructureMatcher module can be access in below link with its parameters:
                 https://pymatgen.org/pymatgen.analysis.html#pymatgen.analysis.structure_matcher.StructureMatcher.get_mapping
-    
+
         Returns:
             StructureMatcher().fit(): bool
         """
 
         original_struct = self.structure
-        
+
         output_struct = self.cif_string_decoder_sym(input)
 
-        return StructureMatcher(ltol, stol, angle_tol, primitive_cell, scale, allow_subset, attempt_supercell).fit(output_struct, original_struct)
+        return StructureMatcher(
+            ltol,
+            stol,
+            angle_tol,
+            primitive_cell,
+            scale,
+            allow_subset,
+            attempt_supercell,
+        ).fit(output_struct, original_struct)
 
-
-    def get_atoms_params_rep(self, lattice_params: bool = False, decimal_places: int = 2) -> str:
+    def get_atoms_params_rep(
+        self, lattice_params: bool = False, decimal_places: int = 2
+    ) -> str:
         """
         Generating a string with the elements of composition inside the crystal lattice with the option to
         get the lattice parameters as angles (int) and lengths (float) in a string with a space
         between them
 
         Params:
-            lattice_params: boolean, optional 
+            lattice_params: boolean, optional
                 To specify whether use lattice parameters in generating crystal structure.
                 Defaults to False
-            decimal_places : int, optional, 
+            decimal_places : int, optional,
                 to specify the rounding digit for float numbers.
                 Defaults to 2
-        
+
         Returns:
             output: str
                 An oneline string.
         """
-        
+
         output = [site.specie.element.symbol for site in self.structure.sites]
         if lattice_params:
             params = self.get_lattice_parameters(decimal_places=decimal_places)
@@ -597,16 +730,19 @@ class TextRep:
             output.extend(params)
 
         return " ".join(output)
-    
-    
+
     def get_all_text_reps(self, decimal_places: int = 2):
         """
         Returns all the Text representations of the crystal structure in a dictionary.
         """
 
         return {
-            "cif_p1": self._safe_call(self.get_cif_string, format="p1", decimal_places=decimal_places),
-            "cif_symmetrized": self._safe_call(self.get_cif_string, format="symmetrized", decimal_places=decimal_places),
+            "cif_p1": self._safe_call(
+                self.get_cif_string, format="p1", decimal_places=decimal_places
+            ),
+            "cif_symmetrized": self._safe_call(
+                self.get_cif_string, format="symmetrized", decimal_places=decimal_places
+            ),
             "cif_bonding": None,
             "slice": self._safe_call(self.get_slice),
             "composition": self._safe_call(self.get_composition),
@@ -615,3 +751,43 @@ class TextRep:
             "wycoff_rep": None,
         }
 
+    def get_requested_text_reps(
+        self, requested_reps: List[str], decimal_places: int = 2
+    ):
+        """
+        Returns the requested Text representations of the crystal structure in a dictionary.
+
+        Parameters:
+            requested_reps : List of representations to return.
+            decimal_places : Number of decimal places for the cif strings.
+
+        Returns:
+            Dictionary of requested representations.
+        """
+
+        all_reps = {
+            "cif_p1": lambda: self._safe_call(
+                self.get_cif_string, format="p1", decimal_places=decimal_places
+            ),
+            "cif_symmetrized": lambda: self._safe_call(
+                self.get_cif_string, format="symmetrized", decimal_places=decimal_places
+            ),
+            "cif_bonding": lambda: None,
+            "slice": lambda: self._safe_call(self.get_slice),
+            "composition": lambda: self._safe_call(self.get_composition),
+            "crystal_llm_rep": lambda: self._safe_call(self.get_crystal_llm_rep),
+            "robocrys_rep": lambda: self._safe_call(self.get_robocrys_rep),
+            "wycoff_rep": lambda: None,
+            "atoms": lambda: self._safe_call(
+                self.get_atoms_params_rep,
+                lattice_params=False,
+                decimal_places=decimal_places,
+            ),
+            "atoms_params": lambda: self._safe_call(
+                self.get_atoms_params_rep,
+                lattice_params=True,
+                decimal_places=decimal_places,
+            ),
+        }
+
+        return {rep: all_reps[rep]() for rep in requested_reps if rep in all_reps}
