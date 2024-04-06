@@ -9,6 +9,7 @@ from invcryrep.invcryrep import InvCryRep
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 from pymatgen.core.lattice import Lattice
+from pymatgen.core.structure import Molecule
 from pymatgen.io.cif import CifWriter
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pyxtal import pyxtal
@@ -734,6 +735,57 @@ class TextRep:
 
         return " ".join(output)
 
+    def updated_zmatrix_rep(self, zmatrix, decimal_places=1):
+        lines = zmatrix.split("\n")
+        main_part = []
+        variables_part = []
+
+        # Determine the main part and the variables part of the Z-matrix
+        for line in lines:
+            if "=" in line:
+                variables_part.append(line)
+            else:
+                if line.strip():  # Skip empty lines
+                    main_part.append(line)
+
+        # Extract variables from the variables part
+        variable_dict = {}
+        for var_line in variables_part:
+            var, value = var_line.split("=")
+            if var.startswith("B"):
+                rounded_value = round(float(value.strip()), decimal_places)
+            else:
+                rounded_value = int(round(float(value.strip())))
+            variable_dict[var] = (
+                f"{rounded_value}"
+                if var.startswith(("A", "D"))
+                else f"{rounded_value:.{decimal_places}f}"
+            )
+
+        # Replace variables in the main part
+        replaced_lines = []
+        for line in main_part:
+            parts = line.split()
+            # atom = parts[0]
+            replaced_line = line
+            for i in range(1, len(parts)):
+                var = parts[i]
+                if var in variable_dict:
+                    replaced_line = replaced_line.replace(var, variable_dict[var])
+            replaced_lines.append(replaced_line)
+
+        return "\n".join(replaced_lines)
+
+    def get_zmatrix_rep(self, decimal_places=1):
+        species = [s.element for s in self.structure.species]
+        coords = [c for c in self.structure.cart_coords]
+        molecule_ = Molecule(
+            species,
+            coords,
+        )
+        zmatrix = molecule_.get_zmatrix()
+        return self.updated_zmatrix_rep(zmatrix, decimal_places)
+
     def get_all_text_reps(self, decimal_places: int = 2):
         """
         Returns all the Text representations of the crystal structure in a dictionary.
@@ -752,6 +804,17 @@ class TextRep:
             "crystal_llm_rep": self._safe_call(self.get_crystal_llm_rep),
             "robocrys_rep": self._safe_call(self.get_robocrys_rep),
             "wycoff_rep": None,
+            "atoms": self._safe_call(
+                self.get_atoms_params_rep,
+                lattice_params=False,
+                decimal_places=decimal_places,
+            ),
+            "atoms_params": self._safe_call(
+                self.get_atoms_params_rep,
+                lattice_params=True,
+                decimal_places=decimal_places,
+            ),
+            "zmatrix": self._safe_call(self.get_zmatrix_rep),
         }
 
     def get_requested_text_reps(
@@ -791,6 +854,7 @@ class TextRep:
                 lattice_params=True,
                 decimal_places=decimal_places,
             ),
+            "zmatrix": lambda: self._safe_call(self.get_zmatrix_rep, decimal_places=1),
         }
 
         return {rep: all_reps[rep]() for rep in requested_reps if rep in all_reps}
