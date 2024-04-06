@@ -703,7 +703,7 @@ class TextRep:
         ).fit(output_struct, original_struct)
 
     def get_atoms_params_rep(
-        self, lattice_params: bool = False, decimal_places: int = 2
+        self, lattice_params: bool = False, decimal_places: int = 1
     ) -> str:
         """
         Generating a string with the elements of composition inside the crystal lattice with the option to
@@ -723,7 +723,10 @@ class TextRep:
                 An oneline string.
         """
 
-        output = [site.specie.element.symbol for site in self.structure.sites]
+        try:
+            output = [site.specie.element.symbol for site in self.structure.sites]
+        except AttributeError:
+            output = [site.specie.symbol for site in self.structure.sites]
         if lattice_params:
             params = self.get_lattice_parameters(decimal_places=decimal_places)
             params[3:] = [str(int(float(i))) for i in params[3:]]
