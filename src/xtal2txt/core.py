@@ -332,7 +332,10 @@ class TextRep:
 
         spacegroup_analyzer = SpacegroupAnalyzer(self.structure)
         wyckoff_sites = spacegroup_analyzer.get_symmetry_dataset()
-        element_symbols = [site.specie.element.symbol for site in self.structure.sites]
+        try:
+            element_symbols = [site.specie.element.symbol for site in self.structure.sites]
+        except AttributeError:
+            element_symbols = [site.specie.symbol for site in self.structure.sites]
 
         data = []
 
@@ -348,7 +351,7 @@ class TextRep:
 
         output = ""
         for i, j in a.items():
-            output += str(i[0]) + " " + str(j) + str(i[1]) + "\n"
+            output += str(i[0]) + " " + str(j) + " " + str(i[1]) + "\n"
 
         return output
 
@@ -777,7 +780,11 @@ class TextRep:
         return "\n".join(replaced_lines)
 
     def get_zmatrix_rep(self, decimal_places=1):
-        species = [s.element for s in self.structure.species]
+        try:
+            species = [s.element for s in self.structure.species]
+        except AttributeError:
+            species = [s for s in self.structure.species]
+
         coords = [c for c in self.structure.cart_coords]
         molecule_ = Molecule(
             species,
@@ -843,7 +850,7 @@ class TextRep:
             "composition": lambda: self._safe_call(self.get_composition),
             "crystal_llm_rep": lambda: self._safe_call(self.get_crystal_llm_rep),
             "robocrys_rep": lambda: self._safe_call(self.get_robocrys_rep),
-            "wycoff_rep": lambda: None,
+            "wycoff_rep": lambda: self._safe_call(self.get_wycryst),
             "atoms": lambda: self._safe_call(
                 self.get_atoms_params_rep,
                 lattice_params=False,
