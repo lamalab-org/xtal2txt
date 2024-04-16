@@ -38,6 +38,6 @@ def test_encode_decode(tokenizer):
     ("Cu Cu Cu Cu 0 3 - - o 0 2 - o - 0 1 o - - 1 2 - + o 1 3 - o + 2 3 o - + ", ['Cu', 'Cu', 'Cu', 'Cu', '0', '3', '- - o', '0', '2', '- o -', '0', '1', 'o - -', '1', '2', '- + o', '1', '3', '- o +', '2', '3', 'o - +']),
     
 ])
-def test_tokenize(tokenizer, input_string, expected):
+def test_tokenizer(tokenizer, input_string, expected):
     tokens = tokenizer.tokenize(input_string)
     assert tokens == expected

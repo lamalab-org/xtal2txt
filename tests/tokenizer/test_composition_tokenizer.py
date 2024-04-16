@@ -41,6 +41,6 @@ def test_encode_decode(tokenizer):
     ("Cr4P16Pb4", ['Cr', '4', 'P', '1', '6', 'Pb', '4']),
     
 ])
-def test_tokenize(tokenizer, input_string, expected):
+def test_tokenizer(tokenizer, input_string, expected):
     tokens = tokenizer.tokenize(input_string)
     assert tokens == expected
