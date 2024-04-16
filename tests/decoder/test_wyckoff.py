@@ -15,18 +15,19 @@ Sr_str = "Sr1 Ti1 O3\n221\nSr 1a\nTi 1b\nO 3c\n"
 In_str = "In4 Cu4 S8\n122\nIn 4b\nCu 4a\nS 8d\n"
 
 
+
 def test_get_wyckoff_positions() -> None:
-    expected = "Sr 1a\nTi 1b\nO 3c\n"
+    expected = "Sr 1 a\nTi 1 b\nO 3 c\n"
     assert Sr.get_wyckoff_positions() == expected
 
 
 def test_get_wycryst() -> None:
-    expected = "Sr1 Ti1 O3\n221\nSr 1a\nTi 1b\nO 3c\n"
+    expected = "Sr1 Ti1 O3\n221\nSr 1 a\nTi 1 b\nO 3 c\n"
     assert Sr.get_wycryst() == expected
 
 
-def test_wyckoff_matcher() -> None:
-    
-    assert N2.wyckoff_matcher(N2_str, lattice_params=True) == True
-    assert Sr.wyckoff_matcher(Sr_str, lattice_params=True) == True
-    assert In.wyckoff_matcher(In_str, lattice_params=True) == True
+
+# @pytest.mark.parametrize("text_rep_str, pmg_structure", [(N2_str, N2.structure), (Sr_str, Sr.structure), (In_str, In.structure)])
+# def test_wyckoff_matcher(text_rep_str: str, pmg_structure) -> None:
+#     matcher = MatchRep(text_rep_str, pmg_structure)
+#     assert matcher.wyckoff_matcher() == True

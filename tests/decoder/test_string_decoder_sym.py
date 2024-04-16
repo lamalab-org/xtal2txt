@@ -1,6 +1,7 @@
 import pytest
 from xtal2txt.core import TextRep
 from pymatgen.core.structure import Structure as pyStructure
+from xtal2txt.decoder import DecodeTextRep, MatchRep
 import os
 
 
@@ -20,17 +21,23 @@ In_str = "data_InCuS2\n_symmetry_space_group_name_H-M   I-42d\n_cell_length_a   
 Tl_str = "data_TlCr5Se8\n_symmetry_space_group_name_H-M   C2/m\n_cell_length_a   18.931\n_cell_length_b   3.669\n_cell_length_c   9.064\n_cell_angle_alpha   90.0\n_cell_angle_beta   105.05\n_cell_angle_gamma   90.0\n_symmetry_Int_Tables_number   12\n_chemical_formula_structural   TlCr5Se8\n_chemical_formula_sum   'Tl2 Cr10 Se16'\n_cell_volume   607.987\n_cell_formula_units_Z   2\nloop_\n _symmetry_equiv_pos_site_id\n _symmetry_equiv_pos_as_xyz\n  1  'x, y, z'\n  2  '-x, -y, -z'\n  3  '-x, y, -z'\n  4  'x, -y, z'\n  5  'x+1/2, y+1/2, z'\n  6  '-x+1/2, -y+1/2, -z'\n  7  '-x+1/2, y+1/2, -z'\n  8  'x+1/2, -y+1/2, z'\nloop_\n _atom_type_symbol\n _atom_type_oxidation_number\n  Tl+  1.0\n  Cr3+  3.0\n  Se2-  -2.0\nloop_\n _atom_site_type_symbol\n _atom_site_label\n _atom_site_symmetry_multiplicity\n _atom_site_fract_x\n _atom_site_fract_y\n _atom_site_fract_z\n _atom_site_occupancy\n  Tl+  Tl0  2  0.0  0.0  0.5  1.0\n  Cr3+  Cr1  4  0.158  0.0  0.975  1.0\n  Cr3+  Cr2  4  0.204  0.0  0.334  1.0\n  Cr3+  Cr3  2  0.0  0.5  0.0  1.0\n  Se2-  Se4  4  0.076  0.0  0.153  1.0\n  Se2-  Se5  4  0.084  0.5  0.822  1.0\n  Se2-  Se6  4  0.17  0.5  0.49  1.0\n  Se2-  Se7  4  0.238  0.5  0.156  1.0\n"
 
 
-def test_cif_string_decoder_p1() -> None:
-
-    assert type(N2.cif_string_decoder_sym(N2_str)) == pyStructure
-    assert type(Sr.cif_string_decoder_sym(Sr_str)) == pyStructure
-    assert type(In.cif_string_decoder_sym(In_str)) == pyStructure
-    assert type(Tl.cif_string_decoder_sym(Tl_str)) == pyStructure
 
 
-def test_cif_string_matcher_p1() -> None:
+@pytest.mark.parametrize("text_rep_str", [N2_str, Sr_str, In_str, Tl_str])
+def test_cif_string_decoder_sym(text_rep_str: str) -> None:
+    decoder = DecodeTextRep(text_rep_str)
+    assert type(decoder.cif_string_decoder_sym(decoder.text)) == pyStructure
 
-    assert N2.cif_string_matcher_sym(N2_str) == True
-    assert Sr.cif_string_matcher_sym(Sr_str) == True
-    assert In.cif_string_matcher_sym(In_str) == True
-    assert Tl.cif_string_matcher_sym(Tl_str) == True
+
+@pytest.mark.parametrize("text_rep_str, pmg_structure", [(N2_str, N2.structure), (Sr_str, Sr.structure), (In_str, In.structure), (Tl_str, Tl.structure)])
+def test_cif_string_matcher_sym(text_rep_str: str, pmg_structure) -> None:
+    matcher = MatchRep(text_rep_str, pmg_structure)
+    assert matcher.cif_string_matcher_sym() == True
+
+
+# def test_cif_string_matcher_p1() -> None:
+
+#     assert N2.cif_string_matcher_sym(N2_str) == True
+#     assert Sr.cif_string_matcher_sym(Sr_str) == True
+#     assert In.cif_string_matcher_sym(In_str) == True
+#     assert Tl.cif_string_matcher_sym(Tl_str) == True
