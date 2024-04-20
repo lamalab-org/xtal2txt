@@ -4,13 +4,25 @@ from pymatgen.core.structure import Structure
 from typing import Union, Tuple, List
 import re
 
+
+
+def set_seed(seed: int):
+    """
+    Set the random seed for both random and numpy.random.
+
+    Parameters:
+        seed (int): The seed value.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+
 class TransformationCallback:
     @staticmethod
     def permute_structure(structure: Structure, seed: int = 42) -> Structure:
         """
         Randomly permute the order of atoms in a structure.
         """
-        random.seed(seed)
+        set_seed(seed)
         shuffled_structure = structure.copy()
         sites = shuffled_structure.sites
         random.shuffle(sites)
@@ -18,14 +30,20 @@ class TransformationCallback:
         return shuffled_structure
 
     @staticmethod
-    def translate_structure(structure: Structure, seed: int = 42) -> Structure:
+    def translate_structure(structure: Structure, vector: Union[List[float],None] = None, seed: int = 42, **kwargs) -> Structure:
         """
         Randomly translate the atoms in a structure.
         """
-        random.seed(seed)
+        set_seed(seed)
+
+        if vector is None:
+            vector=np.random.uniform(size=(3,))
+
         structure.translate_sites(
             indices=range(len(structure.sites)),
-            vector=np.random.uniform(size=(3,))
+            vector=vector, 
+            #frac_coords=True, 
+            **kwargs
         )
         return structure
 
@@ -43,7 +61,7 @@ class TransformationCallback:
         Returns:
             Structure: The transformed structure.
         """
-        random.seed(seed)
+        set_seed(seed)
         indices = random.sample(range(len(structure.sites)), min(max_indices, len(structure.sites))) #ensures that we select at most max_indices from the available sites
         structure.translate_sites(indices=indices, vector=vector, frac_coords=True, **kwargs)
         return structure
@@ -53,7 +71,7 @@ class TransformationCallback:
         """
         Randomly perturb atoms in a structure.
         """
-        random.seed(seed)
+        set_seed(seed)
         distance = random.uniform(0, max_distance)
         structure.perturb(distance=distance, **kwargs)
         return structure

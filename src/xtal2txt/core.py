@@ -111,53 +111,6 @@ class TextRep:
         )
         return new_string
 
-    def get_permuted_structure(self, seed: int = 42):
-        """
-        Randomly permute the order of atoms in a structure.
-        """
-        random.seed(seed)
-
-        shuffled_structure = self.structure.copy()
-        sites = shuffled_structure.sites
-        random.shuffle(sites)
-        shuffled_structure.sites = sites
-        return shuffled_structure
-
-    def permute_structure(self, seed: int = 42):
-        """
-        Randomly permute the order of atoms in a structure.
-        """
-        random.seed(seed)
-        sites = self.structure.sites
-        random.shuffle(sites)
-        self.structure.sites = sites
-
-    def translate_structure(self, seed: int = 42):
-        """
-        Randomly translate the atoms in a structure.
-        """
-        random.seed(seed)
-        self.structure.translate_sites(
-            indices=range(len(self.structure.sites)),
-            vector=np.random.uniform(size=(3,)),
-        )
-
-    def translate_single_atom(self, seed: int = 42):
-        """
-        Randomly translate one atom in a structure.
-        """
-        print("Translating atoms")
-        random.seed(seed)
-        self.structure.translate_sites(indices=[0], vector=[0.25, 0.25, 0.25],frac_coords=True)
-
-    def perturb_structure(self, seed: int = 42):
-        """
-        Randomly perturb atoms in a structure.
-        """
-        random.seed(seed)
-        distance = random.uniform(0, 0.15)
-        self.structure.perturb(distance=distance)
-
     def get_cif_string(
         self, format: str = "symmetrized", decimal_places: int = 3
     ) -> str:
