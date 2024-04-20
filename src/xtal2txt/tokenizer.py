@@ -23,7 +23,7 @@ ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(
-        self, vocab_file, model_max_length=None, padding_length=None, **kwargs
+        self, vocab_file, special_tokens=None, model_max_length=None, padding_length=None, **kwargs
     ):
         super(Xtal2txtTokenizer, self).__init__(
             model_max_length=model_max_length, **kwargs
@@ -34,6 +34,10 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         self.truncation = False
         self.padding = False
         self.padding_length = padding_length
+        
+        # Initialize special tokens
+        self.special_tokens = special_tokens if special_tokens is not None else {}
+        self.add_special_tokens(self.special_tokens)
 
     def load_vocab(self, vocab_file):
         _, file_extension = os.path.splitext(vocab_file)
@@ -59,8 +63,15 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         pattern = re.compile(pattern_str)
         matches = pattern.findall(text)
 
+        # Add [CLS] and [SEP] tokens if present in the vocabulary
+        if self.cls_token is not None:
+            matches = [self.cls_token] + matches
+
         if self.truncation and len(matches) > self.model_max_length:
-            matches = matches[: self.model_max_length]
+            matches = matches[: self.model_max_length-1]   # -1 since we add sep token later
+
+        if self.sep_token is not None:
+            matches += [self.sep_token]
 
         if self.padding and len(matches) < self.padding_length:
             matches += [self.pad_token] * (self.padding_length - len(matches))
@@ -100,6 +111,16 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
             if value not in self.vocab:
                 setattr(self, token, value)
                 self.vocab[value] = len(self.vocab)
+
+        # Ensure [CLS] and [SEP] tokens are added
+        cls_token = special_tokens.get("cls_token", None)
+        sep_token = special_tokens.get("sep_token", None)
+        if cls_token is not None and cls_token not in self.vocab:
+            setattr(self, "cls_token", cls_token)
+            self.vocab[cls_token] = len(self.vocab)
+        if sep_token is not None and sep_token not in self.vocab:
+            setattr(self, "sep_token", sep_token)
+            self.vocab[sep_token] = len(self.vocab)
         self.save_vocabulary(os.path.dirname(self.vocab_file))
 
     def token_analysis(self, tokens):
