@@ -2,7 +2,7 @@ import random
 import re
 from collections import Counter
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import numpy as np
 from invcryrep.invcryrep import InvCryRep
@@ -11,6 +11,8 @@ from pymatgen.core.structure import Molecule
 from pymatgen.io.cif import CifWriter
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from robocrys import StructureCondenser, StructureDescriber
+
+from xtal2txt.transforms import TransformationCallback
 
 
 class TextRep:
@@ -36,32 +38,17 @@ class TextRep:
     def __init__(
         self,
         structure: Structure,
-        permute_atoms: bool = False,
-        translate_atoms: bool = False,
-        translate_single_atom: bool = False,
-        perturb_structure: bool = False,
-        seed_for_transformations: int = 42,
+        transformations: List[Tuple[str, dict]] = None,
     ) -> None:
         self.structure = structure
-        # if permute_atoms:
-        #     self.permute_structure(seed_for_transformations)
-        # if translate_atoms:
-        #     self.translate_structure(seed_for_transformations)
-        # if translate_single_atom:
-        #     self.translate_single_atom(seed_for_transformations)
-        # if perturb_structure:
-        #     self.perturb_structure(seed_for_transformations)
-
+        self.transformations = transformations or []
+        self.apply_transformations()
 
     @classmethod
     def from_input(
         cls,
         input_data: Union[str, Path, Structure],
-        permute_atoms: bool = False,
-        translate_atoms: bool = False,
-        translate_single_atom: bool = False,
-        perturb_structure: bool = False,
-        seed_for_transformations: int = 42,
+        transformations: List[Tuple[str, dict]] = None,
     ) -> "TextRep":
         """
         Instantiate the TextRep class object with the pymatgen structure from a cif file, a cif string, or a pymatgen Structure object.
@@ -87,7 +74,15 @@ class TextRep:
         else:
             structure = Structure.from_str(str(input_data), "cif")
 
-        return cls(structure, permute_atoms, translate_atoms, seed_for_transformations,translate_single_atom,perturb_structure)
+        return cls(structure, transformations)
+    
+    def apply_transformations(self) -> None:
+        """
+        Apply transformations to the structure.
+        """
+        for transformation, params in self.transformations:
+            transform_func = getattr(TransformationCallback, transformation)
+            self.structure = transform_func(self.structure, **params)
 
     @staticmethod
     def _safe_call(func, *args, **kwargs):
@@ -115,53 +110,6 @@ class TextRep:
             pattern, lambda x: str(rounded_numbers.pop(0)), original_string
         )
         return new_string
-
-    def get_permuted_structure(self, seed: int = 42):
-        """
-        Randomly permute the order of atoms in a structure.
-        """
-        random.seed(seed)
-
-        shuffled_structure = self.structure.copy()
-        sites = shuffled_structure.sites
-        random.shuffle(sites)
-        shuffled_structure.sites = sites
-        return shuffled_structure
-
-    def permute_structure(self, seed: int = 42):
-        """
-        Randomly permute the order of atoms in a structure.
-        """
-        random.seed(seed)
-        sites = self.structure.sites
-        random.shuffle(sites)
-        self.structure.sites = sites
-
-    def translate_structure(self, seed: int = 42):
-        """
-        Randomly translate the atoms in a structure.
-        """
-        random.seed(seed)
-        self.structure.translate_sites(
-            indices=range(len(self.structure.sites)),
-            vector=np.random.uniform(size=(3,)),
-        )
-
-    def translate_single_atom(self, seed: int = 42):
-        """
-        Randomly translate one atom in a structure.
-        """
-        print("Translating atoms")
-        random.seed(seed)
-        self.structure.translate_sites(indices=[0], vector=[0.25, 0.25, 0.25],frac_coords=True)
-
-    def perturb_structure(self, seed: int = 42):
-        """
-        Randomly perturb atoms in a structure.
-        """
-        random.seed(seed)
-        distance = random.uniform(0, 0.15)
-        self.structure.perturb(distance=distance)
 
     def get_cif_string(
         self, format: str = "symmetrized", decimal_places: int = 3
@@ -297,11 +245,6 @@ class TextRep:
         coordinates as floats in a separate line.
 
         """
-
-        # Randomly translate within the unit cell
-        # self.structure.translate_sites(
-        #     indices=range(len(self.structure.sites)), vector=np.random.uniform(size=(3,))
-        # )
 
         lengths = self.structure.lattice.parameters[:3]
         angles = self.structure.lattice.parameters[3:]
