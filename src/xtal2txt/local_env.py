@@ -3,7 +3,7 @@
 This module requires installation of Openbabel, e.g. via conda:
 
 .. code-block:: bash
-    
+
         conda install -c conda-forge openbabel
 """
 
@@ -16,7 +16,6 @@ from pymatgen.analysis.chemenv.coordination_environments.coordination_geometry_f
 from pymatgen.analysis.chemenv.coordination_environments.structure_environments import (
     LightStructureEnvironments,
 )
-from pymatgen.analysis.chemenv.connectivity.connectivity_finder import ConnectivityFinder
 from pymatgen.core import Structure, Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -44,7 +43,9 @@ class LocalEnvAnalyzer:
         self.distance_cutoff = distance_cutoff
         self.angle_cutoff = angle_cutoff
 
-    def get_local_environments(self, structure: Structure) -> Tuple[List[dict], List[dict]]:
+    def get_local_environments(
+        self, structure: Structure
+    ) -> Tuple[List[dict], List[dict]]:
         """Get the local environments of the atoms in a structure.
 
         Args:
@@ -58,7 +59,9 @@ class LocalEnvAnalyzer:
         # we need to get the symmetrized structure
         sga = SpacegroupAnalyzer(structure)
         symm_struct = sga.get_symmetrized_structure()
-        inequivalent_indices = [indices[0] for indices in symm_struct.equivalent_indices]
+        inequivalent_indices = [
+            indices[0] for indices in symm_struct.equivalent_indices
+        ]
         wyckoffs = symm_struct.wyckoff_symbols
 
         # a Voronoi tessellation is used to determine the local environment of each atom
@@ -72,7 +75,8 @@ class LocalEnvAnalyzer:
         lgf = LocalGeometryFinder()
         lgf.setup_structure(structure=structure)
         se = lgf.compute_structure_environments(
-            maximum_distance_factor=self.distance_cutoff + 0.01, only_indices=inequivalent_indices
+            maximum_distance_factor=self.distance_cutoff + 0.01,
+            only_indices=inequivalent_indices,
         )
         strategy = SimplestChemenvStrategy(
             distance_cutoff=self.distance_cutoff, angle_cutoff=self.angle_cutoff
@@ -86,7 +90,6 @@ class LocalEnvAnalyzer:
         envs = []
         unknown_sites = []
         for index, wyckoff in zip(inequivalent_indices, wyckoffs):
-
             if not lse.neighbors_sets[index]:
                 unknown_sites.append(f"{structure[index].species_string} ({wyckoff})")
                 continue
