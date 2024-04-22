@@ -21,6 +21,79 @@ CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
 ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
 
+from typing import List
+import re
+
+class NumTokenizer:
+    """Tokenize numbers as implemented in Regression Transformer.
+        https://www.nature.com/articles/s42256-023-00639-z"""
+        
+
+    def __init__(self) -> None:
+        """Tokenizer for numbers."""
+        self.regex = re.compile(r"(\+|-)?(\d+)(\.)?(\d+)?\s*")
+
+    def tokenize(self, text: str) -> List[str]:
+        """Tokenization of a property.
+
+        Args:
+            text: number as string to be tokenized.
+
+        Returns:
+            extracted tokens.
+        """
+        tokens = []
+        matched = self.regex.match(text)
+        if matched:
+            sign, units, dot, decimals = matched.groups()
+            tokens = []
+            if sign:
+                tokens += [f"_{sign}_"]
+            tokens += [
+                f"_{number}_{position}_" for position, number in enumerate(units[::-1])
+            ][::-1]
+            if dot:
+                tokens += [f"_{dot}_"]
+            if decimals:
+                tokens += [
+                    f"_{number}_-{position}_"
+                    for position, number in enumerate(decimals, 1)
+                ]
+        return tokens
+    
+    @staticmethod
+    def convert_tokens_to_float(tokens: List[str]) -> float:
+        """Converts tokens representing a float value into a float.
+        NOTE: Expects that non-floating tokens are strippped off
+
+        Args:
+            tokens: List of tokens, each representing a float.
+                E.g.: ['_0_0_', '_._', '_9_-1_', '_3_-2_', '_1_-3_']
+
+        Returns:
+            float: Float representation for the list of tokens.
+        """
+        try:
+            float_string = "".join([token.split("_")[1] for token in tokens])
+            float_value = float(float_string)
+        except ValueError:
+            float_value = -1
+        return float_value
+
+    
+    def convert_tokens_to_string(self, tokens: List[str]) -> str:
+        """Converts tokens to string.
+
+        Args:
+            tokens: List of tokens.
+
+        Returns:
+            str: String representation of the tokens.
+        """
+        return "".join([token.split("_")[1] for token in tokens])
+        
+        
+
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(
         self, vocab_file, model_max_length=None, padding_length=None, **kwargs
