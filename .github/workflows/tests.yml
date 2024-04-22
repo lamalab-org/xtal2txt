@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        shell: bash
+        shell: bash -l {0}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -27,16 +27,20 @@ jobs:
       #     python-version: ${{ matrix.python-version }}
       #     cache: true
 
-      - name: Set up Python
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup Mambaforge
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          auto-activate-base: true
-          activate-environment: ""
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          use-mamba: true
+          python-version: ${{ matrix.python-version }}
+          conda-channels: anaconda, conda-forge
+          activate-environment: test
 
       - name: Install dependencies
         run: |
           pip install -e ".[dev]"
-          conda install -c conda-forge openbabel -y
+          mamba install -c conda-forge openbabel -y
 
       - name: Test
         run: pytest tests
