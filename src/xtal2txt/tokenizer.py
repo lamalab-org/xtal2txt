@@ -23,7 +23,11 @@ ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(
-        self, vocab_file, special_tokens=None, model_max_length=None, padding_length=None, **kwargs
+        self, vocab_file, 
+        special_tokens={"cls_token": "[CLS]","sep_token": "[SEP]",}, 
+        model_max_length=None, 
+        padding_length=None, 
+        **kwargs
     ):
         super(Xtal2txtTokenizer, self).__init__(
             model_max_length=model_max_length, **kwargs
