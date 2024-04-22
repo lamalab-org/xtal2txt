@@ -27,6 +27,6 @@ def test_convert_id_to_token(tokenizer):
 def test_encode_decode(tokenizer):
     input_string = "5.6 5.6 5.6\n90 90 90\nN0+\n0.48 0.98 0.52\nN0+\n0.98 0.52 0.48\nN0+\n0.02 0.02 0.02\nN0+\n0.52 0.48 0.98"
     token_ids = tokenizer.encode(input_string)
-    decoded_tokens = tokenizer.decode(token_ids)
+    decoded_tokens = tokenizer.decode(token_ids,skip_special_tokens=True)
     assert input_string == decoded_tokens
 
