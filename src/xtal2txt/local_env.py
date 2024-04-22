@@ -43,9 +43,7 @@ class LocalEnvAnalyzer:
         self.distance_cutoff = distance_cutoff
         self.angle_cutoff = angle_cutoff
 
-    def get_local_environments(
-        self, structure: Structure
-    ) -> Tuple[List[dict], List[dict]]:
+    def get_local_environments(self, structure: Structure) -> Tuple[List[dict], List[dict]]:
         """Get the local environments of the atoms in a structure.
 
         Args:
@@ -59,9 +57,7 @@ class LocalEnvAnalyzer:
         # we need to get the symmetrized structure
         sga = SpacegroupAnalyzer(structure)
         symm_struct = sga.get_symmetrized_structure()
-        inequivalent_indices = [
-            indices[0] for indices in symm_struct.equivalent_indices
-        ]
+        inequivalent_indices = [indices[0] for indices in symm_struct.equivalent_indices]
         wyckoffs = symm_struct.wyckoff_symbols
 
         # a Voronoi tessellation is used to determine the local environment of each atom
@@ -122,6 +118,10 @@ class LocalEnvAnalyzer:
 
     def structure_to_local_env_string(self, structure: Structure) -> str:
         """Convert a structure to a string representation of its local environments.
+
+        The text string might look like
+
+        "S2- (8d) [Cu]S([In])([In])[Cu]\nCu+ (4a) [S][Cu]([S])([S])[S]\nIn3+ (4b) [S][In]([S])[S].[S]"
 
         Args:
             structure (Structure): pymatgen Structure object
