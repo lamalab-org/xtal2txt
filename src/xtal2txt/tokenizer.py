@@ -33,6 +33,15 @@ class NumTokenizer:
         """Tokenizer for numbers."""
         self.regex = re.compile(r"(\+|-)?(\d+)(\.)?(\d+)?\s*")
 
+    def num_matcher(self, text: str) -> str:
+        """Extract numbers from a sentence and replace them with tokens."""
+        matches = re.findall(r'\b\d+(?:\.\d+)?\b', text)  # This regex captures both whole numbers and decimal numbers
+        for match in matches:
+            tokens = self.tokenize(match)
+            replacement = ' '.join(tokens)
+            text = re.sub(r'\b' + re.escape(match) + r'\b', replacement, text, count=1)  # replace only the first occurrence
+        return text
+
     def tokenize(self, text: str) -> List[str]:
         """Tokenization of a property.
 
@@ -92,7 +101,7 @@ class NumTokenizer:
         """
         return "".join([token.split("_")[1] for token in tokens])
         
-        
+
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(
