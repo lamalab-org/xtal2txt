@@ -75,7 +75,7 @@ class TextRep:
             structure = Structure.from_str(str(input_data), "cif")
 
         return cls(structure, transformations)
-    
+
     def apply_transformations(self) -> None:
         """
         Apply transformations to the structure.
@@ -335,8 +335,6 @@ class TextRep:
         output += "\n" + self.get_wyckoff_positions()
 
         return output
-
-    
 
     def get_atoms_params_rep(
         self, lattice_params: bool = False, decimal_places: int = 1

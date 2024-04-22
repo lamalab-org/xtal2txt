@@ -27,7 +27,15 @@ def test_get_crystal_llm_rep_struc(text_rep_str: str) -> None:
     assert type(decoder.cif_string_decoder_p1(decoder.text)) == pyStructure
 
 
-@pytest.mark.parametrize("text_rep_str, pmg_structure", [(N2_str, N2.structure), (Sr_str, Sr.structure), (In_str, In.structure), (Tl_str, Tl.structure)])
+@pytest.mark.parametrize(
+    "text_rep_str, pmg_structure",
+    [
+        (N2_str, N2.structure),
+        (Sr_str, Sr.structure),
+        (In_str, In.structure),
+        (Tl_str, Tl.structure),
+    ],
+)
 def test_cif_string_matcher_p1(text_rep_str: str, pmg_structure) -> None:
     matcher = MatchRep(text_rep_str, pmg_structure)
     assert matcher.cif_string_matcher_p1() == True
