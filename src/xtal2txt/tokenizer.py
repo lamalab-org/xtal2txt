@@ -15,8 +15,10 @@ from xtal2txt.analysis import (
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
+SLICE_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab_rt.txt")
 COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
 CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
+CIF_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab_rt.json")
 CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
 ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
@@ -43,7 +45,8 @@ class NumTokenizer:
         return text
 
     def tokenize(self, text: str) -> List[str]:
-        """Tokenization of a property.
+        """Tokenization of numbers as in RT.
+         '0.9' -> '_0_0_', '_._', '_9_-1_'
 
         Args:
             text: number as string to be tokenized.
@@ -105,17 +108,17 @@ class NumTokenizer:
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(
-        self, vocab_file, model_max_length=None, padding_length=None, **kwargs
+        self, special_num_token:bool=False, vocab_file=None, model_max_length=None, padding_length=None, **kwargs
     ):
         super(Xtal2txtTokenizer, self).__init__(
-            model_max_length=model_max_length, **kwargs
+         model_max_length=model_max_length, **kwargs
         )
-
-        self.vocab = self.load_vocab(vocab_file)
-        self.vocab_file = vocab_file
         self.truncation = False
         self.padding = False
         self.padding_length = padding_length
+        self.special_num_tokens = special_num_token
+        self.vocab = self.load_vocab(vocab_file)
+        self.vocab_file = vocab_file
 
     def load_vocab(self, vocab_file):
         _, file_extension = os.path.splitext(vocab_file)
@@ -131,8 +134,16 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
 
     def get_vocab(self):
         return self.vocab
+    
+    def get_special_num_tokens(self,text):
+        num_tokenizer = NumTokenizer()
+        return num_tokenizer.num_matcher(text)
+
 
     def tokenize(self, text):
+        if self.special_num_tokens:
+            text = self.get_special_num_tokens(text)
+
         tokens = list(self.vocab.keys())
         string_tokens = [token for token in tokens if isinstance(token, str)]
         string_tokens.sort(key=len, reverse=True)
@@ -243,13 +254,19 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
 class SliceTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
-        vocab_file=SLICE_VOCAB,
+        special_num_token:bool=False,
+        vocab_file=None,
         model_max_length=None,
         padding_length=None,
         **kwargs,
-    ):
+    ):  
+        if special_num_token:
+            vocab_file = SLICE_RT_VOCAB if vocab_file is None else vocab_file
+        else:
+            vocab_file = SLICE_VOCAB if vocab_file is None else vocab_file
         super(SliceTokenizer, self).__init__(
-            vocab_file,
+            special_num_token=special_num_token,
+            vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
@@ -297,10 +314,15 @@ class CompositionTokenizer(Xtal2txtTokenizer):
 
 class CifTokenizer(Xtal2txtTokenizer):
     def __init__(
-        self, vocab_file=CIF_VOCAB, model_max_length=None, padding_length=None, **kwargs
+        self, special_num_token:bool = False, vocab_file=None, model_max_length=None, padding_length=None, **kwargs
     ):
+        if special_num_token:
+            vocab_file = CIF_RT_VOCAB 
+        else:
+            vocab_file = CIF_VOCAB 
         super(CifTokenizer, self).__init__(
-            vocab_file,
+            special_num_token=special_num_token,
+            vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
