@@ -13,6 +13,9 @@ from xtal2txt.analysis import (
     SLICE_ANALYSIS_DICT,
 )
 
+from typing import List
+import re
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
@@ -31,13 +34,9 @@ CRYSTAL_LLM_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab_rt.js
 ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
 
-from typing import List
-import re
-
 class NumTokenizer:
     """Tokenize numbers as implemented in Regression Transformer.
-        https://www.nature.com/articles/s42256-023-00639-z"""
-        
+    https://www.nature.com/articles/s42256-023-00639-z"""
 
     def __init__(self) -> None:
         """Tokenizer for numbers."""
@@ -45,14 +44,16 @@ class NumTokenizer:
 
     def num_matcher(self, text: str) -> str:
         """Extract numbers from a sentence and replace them with tokens."""
-        #pattern = re.findall(r'(\d+\.\d+|\d+)', text)  # This regex captures both whole numbers and decimal numbers
+        # pattern = re.findall(r'(\d+\.\d+|\d+)', text)  # This regex captures both whole numbers and decimal numbers
 
-        pattern = r"\d+(?:\.\d+)?"  # Match any number, whether it is part of a string or not
+        pattern = (
+            r"\d+(?:\.\d+)?"  # Match any number, whether it is part of a string or not
+        )
         matches = list(re.finditer(pattern, text))
-        for match in reversed(matches): #reverse bcos length changes
+        for match in reversed(matches):  # reverse bcos length changes
             start, end = match.start(), match.end()
             tokens = self.tokenize(match.group())
-            replacement = ''.join(tokens)
+            replacement = "".join(tokens)
             text = text[:start] + replacement + text[end:]
         return text
 
@@ -84,7 +85,7 @@ class NumTokenizer:
                     for position, number in enumerate(decimals, 1)
                 ]
         return tokens
-    
+
     @staticmethod
     def convert_tokens_to_float(tokens: List[str]) -> float:
         """Converts tokens representing a float value into a float.
@@ -104,7 +105,6 @@ class NumTokenizer:
             float_value = -1
         return float_value
 
-    
     def convert_tokens_to_string(self, tokens: List[str]) -> str:
         """Converts tokens to string.
 
@@ -115,15 +115,19 @@ class NumTokenizer:
             str: String representation of the tokens.
         """
         return "".join([token.split("_")[1] for token in tokens])
-        
 
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(
-        self, special_num_token:bool=False, vocab_file=None, model_max_length=None, padding_length=None, **kwargs
+        self,
+        special_num_token: bool = False,
+        vocab_file=None,
+        model_max_length=None,
+        padding_length=None,
+        **kwargs,
     ):
         super(Xtal2txtTokenizer, self).__init__(
-         model_max_length=model_max_length, **kwargs
+            model_max_length=model_max_length, **kwargs
         )
         self.truncation = False
         self.padding = False
@@ -146,11 +150,10 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
 
     def get_vocab(self):
         return self.vocab
-    
-    def get_special_num_tokens(self,text):
+
+    def get_special_num_tokens(self, text):
         num_tokenizer = NumTokenizer()
         return num_tokenizer.num_matcher(text)
-
 
     def tokenize(self, text):
         if self.special_num_tokens:
@@ -266,12 +269,12 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
 class SliceTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
-        special_num_token:bool=False,
+        special_num_token: bool = False,
         vocab_file=None,
         model_max_length=None,
         padding_length=None,
         **kwargs,
-    ):  
+    ):
         if special_num_token:
             vocab_file = SLICE_RT_VOCAB if vocab_file is None else vocab_file
         else:
@@ -298,16 +301,16 @@ class SliceTokenizer(Xtal2txtTokenizer):
 class CompositionTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
-        special_num_token:bool=False,
+        special_num_token: bool = False,
         vocab_file=COMPOSITION_VOCAB,
         model_max_length=None,
         padding_length=None,
         **kwargs,
-    ):  
+    ):
         if special_num_token:
-            vocab_file = COMPOSITION_VOCAB 
+            vocab_file = COMPOSITION_VOCAB
         else:
-            vocab_file = COMPOSITION_VOCAB 
+            vocab_file = COMPOSITION_VOCAB
         super(CompositionTokenizer, self).__init__(
             pecial_num_token=special_num_token,
             vocab_file=vocab_file,
@@ -332,12 +335,17 @@ class CompositionTokenizer(Xtal2txtTokenizer):
 
 class CifTokenizer(Xtal2txtTokenizer):
     def __init__(
-        self, special_num_token:bool = False, vocab_file=None, model_max_length=None, padding_length=None, **kwargs
+        self,
+        special_num_token: bool = False,
+        vocab_file=None,
+        model_max_length=None,
+        padding_length=None,
+        **kwargs,
     ):
         if special_num_token:
-            vocab_file = CIF_RT_VOCAB 
+            vocab_file = CIF_RT_VOCAB
         else:
-            vocab_file = CIF_VOCAB 
+            vocab_file = CIF_VOCAB
         super(CifTokenizer, self).__init__(
             special_num_token=special_num_token,
             vocab_file=vocab_file,
@@ -363,16 +371,16 @@ class CifTokenizer(Xtal2txtTokenizer):
 class CrysllmTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
-        special_num_token:bool = False,
+        special_num_token: bool = False,
         vocab_file=CRYSTAL_LLM_VOCAB,
         model_max_length=None,
         padding_length=None,
         **kwargs,
     ):
         if special_num_token:
-            vocab_file = CRYSTAL_LLM_RT_VOCAB 
+            vocab_file = CRYSTAL_LLM_RT_VOCAB
         else:
-            vocab_file = CRYSTAL_LLM_VOCAB 
+            vocab_file = CRYSTAL_LLM_VOCAB
         super(CrysllmTokenizer, self).__init__(
             special_num_token=special_num_token,
             vocab_file=vocab_file,

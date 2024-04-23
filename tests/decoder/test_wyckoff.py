@@ -15,7 +15,6 @@ Sr_str = "Sr1 Ti1 O3\n221\nSr 1a\nTi 1b\nO 3c\n"
 In_str = "In4 Cu4 S8\n122\nIn 4b\nCu 4a\nS 8d\n"
 
 
-
 def test_get_wyckoff_positions() -> None:
     expected = "Sr 1 a\nTi 1 b\nO 3 c\n"
     assert Sr.get_wyckoff_positions() == expected
@@ -24,7 +23,6 @@ def test_get_wyckoff_positions() -> None:
 def test_get_wycryst() -> None:
     expected = "Sr1 Ti1 O3\n221\nSr 1 a\nTi 1 b\nO 3 c\n"
     assert Sr.get_wycryst() == expected
-
 
 
 # @pytest.mark.parametrize("text_rep_str, pmg_structure", [(N2_str, N2.structure), (Sr_str, Sr.structure), (In_str, In.structure)])
