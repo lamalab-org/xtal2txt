@@ -117,7 +117,9 @@ class LocalEnvAnalyzer:
 
         return envs, unknown_sites, symm_struct.spacegroup.int_symbol
 
-    def structure_to_local_env_string(self, structure: Structure) -> str:
+    def structure_to_local_env_string(
+        self, structure: Structure, add_space_group: bool = True
+    ) -> str:
         """Convert a structure to a string representation of its local environments.
 
         The text string might look like
@@ -126,6 +128,7 @@ class LocalEnvAnalyzer:
 
         Args:
             structure (Structure): pymatgen Structure object
+            add_space_group (bool): Whether to add the space group to the string. Defaults to True.
 
         Returns:
             str: A string representation of the local environments of the atoms in the structure.
@@ -133,7 +136,8 @@ class LocalEnvAnalyzer:
         envs, unknown_sites, spacegroup = self.get_local_environments(structure)
         env_str = []
 
-        env_str.append(f"{spacegroup}")
+        if add_space_group:
+            env_str.append(f"{spacegroup}")
         # sort the environments by the coordination environment and SMILES
         envs = sorted(envs, key=lambda x: (x["Environment"], x["SMILES"]))
         for env in envs:
