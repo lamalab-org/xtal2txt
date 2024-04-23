@@ -139,7 +139,7 @@ class LocalEnvAnalyzer:
         if add_space_group:
             env_str.append(f"{spacegroup}")
         # sort the environments by the coordination environment and SMILES
-        envs = sorted(envs, key=lambda x: (x["Environment"], x["SMILES"]))
+        envs = sorted(envs, key=lambda x: (x["Wyckoff Label"], x["SMILES"]))
         for env in envs:
             env_str.append(f"{env['Site']} ({env['Wyckoff Label']}) {env['SMILES']}")
 
