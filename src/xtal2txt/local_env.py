@@ -43,7 +43,7 @@ class LocalEnvAnalyzer:
         self.distance_cutoff = distance_cutoff
         self.angle_cutoff = angle_cutoff
 
-    def get_local_environments(self, structure: Structure) -> Tuple[List[dict], List[dict]]:
+    def get_local_environments(self, structure: Structure) -> Tuple[List[dict], List[dict], str]:
         """Get the local environments of the atoms in a structure.
 
         Args:
@@ -57,6 +57,7 @@ class LocalEnvAnalyzer:
         # we need to get the symmetrized structure
         sga = SpacegroupAnalyzer(structure)
         symm_struct = sga.get_symmetrized_structure()
+
         inequivalent_indices = [indices[0] for indices in symm_struct.equivalent_indices]
         wyckoffs = symm_struct.wyckoff_symbols
 
@@ -114,14 +115,14 @@ class LocalEnvAnalyzer:
                 }
             )
 
-        return envs, unknown_sites
+        return envs, unknown_sites, symm_struct.spacegroup.int_symbol
 
     def structure_to_local_env_string(self, structure: Structure) -> str:
         """Convert a structure to a string representation of its local environments.
 
         The text string might look like
 
-        "S2- (8d) [Cu]S([In])([In])[Cu]\nCu+ (4a) [S][Cu]([S])([S])[S]\nIn3+ (4b) [S][In]([S])[S].[S]"
+        "I-42d\nS2- (8d) [Cu]S([In])([In])[Cu]\nCu+ (4a) [S][Cu]([S])([S])[S]\nIn3+ (4b) [S][In]([S])[S].[S]"
 
         Args:
             structure (Structure): pymatgen Structure object
@@ -129,9 +130,10 @@ class LocalEnvAnalyzer:
         Returns:
             str: A string representation of the local environments of the atoms in the structure.
         """
-        envs, unknown_sites = self.get_local_environments(structure)
+        envs, unknown_sites, spacegroup = self.get_local_environments(structure)
         env_str = []
 
+        env_str.append(f"{spacegroup}")
         # sort the environments by the coordination environment and SMILES
         envs = sorted(envs, key=lambda x: (x["Environment"], x["SMILES"]))
         for env in envs:
