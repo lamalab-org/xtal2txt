@@ -19,6 +19,7 @@ SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
 SLICE_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab_rt.txt")
 
 COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
+COMPOSITION_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab_rt.txt")
 
 CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
 CIF_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab_rt.json")
