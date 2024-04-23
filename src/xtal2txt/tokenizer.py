@@ -14,12 +14,19 @@ from xtal2txt.analysis import (
 )
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
 SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
 SLICE_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab_rt.txt")
+
 COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
+
 CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
 CIF_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab_rt.json")
+
 CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
+CRYSTAL_LLM_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab_rt.json")
+
+
 ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
 
@@ -37,11 +44,15 @@ class NumTokenizer:
 
     def num_matcher(self, text: str) -> str:
         """Extract numbers from a sentence and replace them with tokens."""
-        matches = re.findall(r'\b\d+(?:\.\d+)?\b', text)  # This regex captures both whole numbers and decimal numbers
-        for match in matches:
-            tokens = self.tokenize(match)
-            replacement = ' '.join(tokens)
-            text = re.sub(r'\b' + re.escape(match) + r'\b', replacement, text, count=1)  # replace only the first occurrence
+        #pattern = re.findall(r'(\d+\.\d+|\d+)', text)  # This regex captures both whole numbers and decimal numbers
+
+        pattern = r"\d+(?:\.\d+)?"  # Match any number, whether it is part of a string or not
+        matches = list(re.finditer(pattern, text))
+        for match in reversed(matches): #reverse bcos length changes
+            start, end = match.start(), match.end()
+            tokens = self.tokenize(match.group())
+            replacement = ''.join(tokens)
+            text = text[:start] + replacement + text[end:]
         return text
 
     def tokenize(self, text: str) -> List[str]:
@@ -286,13 +297,19 @@ class SliceTokenizer(Xtal2txtTokenizer):
 class CompositionTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
+        special_num_token:bool=False,
         vocab_file=COMPOSITION_VOCAB,
         model_max_length=None,
         padding_length=None,
         **kwargs,
-    ):
+    ):  
+        if special_num_token:
+            vocab_file = COMPOSITION_VOCAB 
+        else:
+            vocab_file = COMPOSITION_VOCAB 
         super(CompositionTokenizer, self).__init__(
-            vocab_file,
+            pecial_num_token=special_num_token,
+            vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
@@ -345,13 +362,19 @@ class CifTokenizer(Xtal2txtTokenizer):
 class CrysllmTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
+        special_num_token:bool = False,
         vocab_file=CRYSTAL_LLM_VOCAB,
         model_max_length=None,
         padding_length=None,
         **kwargs,
     ):
+        if special_num_token:
+            vocab_file = CRYSTAL_LLM_RT_VOCAB 
+        else:
+            vocab_file = CRYSTAL_LLM_VOCAB 
         super(CrysllmTokenizer, self).__init__(
-            vocab_file,
+            special_num_token=special_num_token,
+            vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
