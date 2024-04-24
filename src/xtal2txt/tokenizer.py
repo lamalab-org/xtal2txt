@@ -176,10 +176,6 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         return matches
 
     def convert_tokens_to_string(self, tokens):
-        if self.special_num_tokens:
-            num_tokenizer = NumTokenizer()
-            print("I am here")
-            return num_tokenizer.convert_tokens_to_string(tokens)
         return " ".join(tokens)
 
     def _add_tokens(self, new_tokens, **kwargs):
@@ -291,6 +287,12 @@ class SliceTokenizer(Xtal2txtTokenizer):
             **kwargs,
         )
 
+    def convert_tokens_to_string(self, tokens):
+        """Converts tokens to string."""
+        if self.special_num_tokens:
+            return " ".join([token if not (token.startswith('_') and token.endswith('_')) else token.split('_')[1] for token in tokens])
+        return " ".join(tokens).rstrip()
+
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
         token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
@@ -359,6 +361,9 @@ class CifTokenizer(Xtal2txtTokenizer):
         )
 
     def convert_tokens_to_string(self, tokens):
+        """Converts tokens to string."""
+        if self.special_num_tokens:
+            return "".join([token if not (token.startswith('_') and token.endswith('_')) else token.split('_')[1] for token in tokens])
         return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):
@@ -395,8 +400,9 @@ class CrysllmTokenizer(Xtal2txtTokenizer):
 
     def convert_tokens_to_string(self, tokens):
         """Converts tokens to string."""
-        
-        return "".join([token if not (token.startswith('_') and token.endswith('_')) else token.split('_')[1] for token in tokens])
+        if self.special_num_tokens:
+            return "".join([token if not (token.startswith('_') and token.endswith('_')) else token.split('_')[1] for token in tokens])
+        return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
