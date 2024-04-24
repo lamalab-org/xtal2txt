@@ -5,7 +5,6 @@ from pymatgen.core.structure import Structure as pyStructure
 import os
 
 
-
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 N2 = TextRep.from_input(os.path.join(THIS_DIR, "..", "data", "N2_p1.cif"))
@@ -21,14 +20,22 @@ In_str = "5.5 5.5 11.1\n90 90 90\nIn3+\n0.50 0.50 0.00\nIn3+\n0.00 0.50 0.75\nIn
 
 Tl_str = "18.9 3.7 9.1\n90 105 90\nTl+\n0.50 0.50 0.50\nTl+\n0.00 0.00 0.50\nCr3+\n0.00 0.50 0.00\nCr3+\n0.34 0.50 0.03\nCr3+\n0.30 0.50 0.67\nCr3+\n0.20 0.00 0.33\nCr3+\n0.16 0.00 0.97\nCr3+\n0.50 0.00 0.00\nCr3+\n0.84 0.00 0.03\nCr3+\n0.80 0.00 0.67\nCr3+\n0.70 0.50 0.33\nCr3+\n0.66 0.50 0.97\nSe2-\n0.08 0.00 0.15\nSe2-\n0.17 0.50 0.49\nSe2-\n0.33 0.00 0.51\nSe2-\n0.08 0.50 0.82\nSe2-\n0.42 0.00 0.18\nSe2-\n0.26 0.00 0.84\nSe2-\n0.24 0.50 0.16\nSe2-\n0.42 0.50 0.85\nSe2-\n0.58 0.50 0.15\nSe2-\n0.67 0.00 0.49\nSe2-\n0.83 0.50 0.51\nSe2-\n0.58 0.00 0.82\nSe2-\n0.92 0.50 0.18\nSe2-\n0.76 0.50 0.84\nSe2-\n0.74 0.00 0.16\nSe2-\n0.92 0.00 0.85"
 
+
 @pytest.mark.parametrize("text_rep_str", [N2_str, Sr_str, In_str, Tl_str])
 def test_get_crystal_llm_rep_struc(text_rep_str: str) -> None:
     decoder = DecodeTextRep(text_rep_str)
     assert type(decoder.llm_decoder(decoder.text)) == pyStructure
 
 
-
-@pytest.mark.parametrize("text_rep_str, pmg_structure", [(N2_str, N2.structure), (Sr_str, Sr.structure), (In_str, In.structure), (Tl_str, Tl.structure)])
+@pytest.mark.parametrize(
+    "text_rep_str, pmg_structure",
+    [
+        (N2_str, N2.structure),
+        (Sr_str, Sr.structure),
+        (In_str, In.structure),
+        (Tl_str, Tl.structure),
+    ],
+)
 def test_llm_matcher(text_rep_str: str, pmg_structure) -> None:
     matcher = MatchRep(text_rep_str, pmg_structure)
     assert matcher.llm_matcher() == True

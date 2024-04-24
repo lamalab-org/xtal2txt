@@ -4,13 +4,14 @@ from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 from pymatgen.core.lattice import Lattice
 
+
 class DecodeTextRep:
     def __init__(self, text):
         self.text = text
 
     def decode(self):
         return self.text
-    
+
     def wyckoff_decoder(self, input: str, lattice_params: bool = False):
         """
         Generating a pymatgen object from the output of the get_wyckoff_rep() method by using...
@@ -69,10 +70,8 @@ class DecodeTextRep:
         pmg_struc = xtal_struc.to_pymatgen()
 
         return pmg_struc
-    
-    
 
-    def llm_decoder(self, input: str ):
+    def llm_decoder(self, input: str):
         """
         Returning pymatgen structure out of multi-line representation.
 
@@ -103,8 +102,6 @@ class DecodeTextRep:
             m_coord.append(s)
 
         return Structure(lattice, elements, m_coord)
-
-    
 
     def cif_string_decoder_p1(self, input: str):
         """
@@ -141,8 +138,6 @@ class DecodeTextRep:
             m_coord.append([float(ls[4]), float(ls[5]), float(ls[6])])
 
         return Structure(lattice, elements, m_coord)
-
-    
 
     def cif_string_decoder_sym(self, input: str):
         """
@@ -184,11 +179,8 @@ class DecodeTextRep:
 
         return Structure.from_spacegroup(spg, lattice, elements, m_coord)
 
-    
-    
 
-class MatchRep():
-
+class MatchRep:
     def __init__(self, textrep, structure):
         self.text = textrep
         self.structure = structure
@@ -222,9 +214,10 @@ class MatchRep():
 
         original_struct = self.structure
 
-        #output_struct = self.wyckoff_decoder(input, lattice_params)
-        output_struct = DecodeTextRep(self.text).wyckoff_decoder(self.text,lattice_params=True)
-        print(original_struct)  
+        # output_struct = self.wyckoff_decoder(input, lattice_params)
+        output_struct = DecodeTextRep(self.text).wyckoff_decoder(
+            self.text, lattice_params=True
+        )
         return StructureMatcher(
             ltol,
             stol,
@@ -276,10 +269,10 @@ class MatchRep():
             allow_subset,
             attempt_supercell,
         ).fit(output_struct, original_struct)
-    
+
     def cif_string_matcher_sym(
         self,
-#        input: str,
+        #        input: str,
         ltol=0.2,
         stol=0.5,
         angle_tol=5,
@@ -316,10 +309,10 @@ class MatchRep():
             allow_subset,
             attempt_supercell,
         ).fit(output_struct, original_struct)
-    
+
     def cif_string_matcher_p1(
         self,
-    #    input: str,
+        #    input: str,
         ltol=0.2,
         stol=0.5,
         angle_tol=5,
@@ -347,7 +340,6 @@ class MatchRep():
         original_struct = self.structure
         output_struct = DecodeTextRep(self.text).cif_string_decoder_p1(self.text)
 
-
         return StructureMatcher(
             ltol,
             stol,
@@ -357,4 +349,3 @@ class MatchRep():
             allow_subset,
             attempt_supercell,
         ).fit(output_struct, original_struct)
-

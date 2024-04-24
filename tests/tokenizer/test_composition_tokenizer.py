@@ -6,23 +6,28 @@ from xtal2txt.tokenizer import CompositionTokenizer
 def tokenizer(scope="module"):
     return CompositionTokenizer()
 
+
 def test_tokenize(tokenizer):
     input_string = "SrTiO3"
     tokens = tokenizer.tokenize(input_string)
     assert isinstance(tokens, list)
 
+
 def test_convert_tokens_to_string(tokenizer):
-    tokens = ['Sr', 'Ti', 'O', '3']
+    tokens = ["Sr", "Ti", "O", "3"]
     result = tokenizer.convert_tokens_to_string(tokens)
     assert result == "SrTiO3"
 
+
 def test_convert_token_to_id(tokenizer):
-    token_id = tokenizer._convert_token_to_id('F')
+    token_id = tokenizer._convert_token_to_id("F")
     assert isinstance(token_id, int)
+
 
 def test_convert_id_to_token(tokenizer):
     token = tokenizer._convert_id_to_token(0)
     assert isinstance(token, str)
+
 
 def test_encode_decode(tokenizer):
     input_string = "SrTiO3"

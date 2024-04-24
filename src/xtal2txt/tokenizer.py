@@ -13,33 +13,134 @@ from xtal2txt.analysis import (
     SLICE_ANALYSIS_DICT,
 )
 
+from typing import List
+
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
 SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
+SLICE_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab_rt.txt")
+
 COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
+COMPOSITION_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab_rt.txt")
+
 CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
+CIF_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab_rt.json")
+
 CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
+CRYSTAL_LLM_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab_rt.json")
+
+
 ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
+
+
+class NumTokenizer:
+    """Tokenize numbers as implemented in Regression Transformer.
+    https://www.nature.com/articles/s42256-023-00639-z
+    https://github.com/IBM/regression-transformer/tree/main"""
+
+    def __init__(self) -> None:
+        """Tokenizer for numbers."""
+        self.regex = re.compile(r"(\+|-)?(\d+)(\.)?(\d+)?\s*")
+
+    def num_matcher(self, text: str) -> str:
+        """Extract numbers from a sentence and replace them with tokens."""
+        # pattern = re.findall(r'(\d+\.\d+|\d+)', text)  # This regex captures both whole numbers and decimal numbers
+
+        pattern = (
+            r"\d+(?:\.\d+)?"  # Match any number, whether it is part of a string or not
+        )
+        matches = list(re.finditer(pattern, text))
+        for match in reversed(matches):  #since we are replacing substring with a bigger subtring the string we are working on 
+            start, end = match.start(), match.end()
+            tokens = self.tokenize(match.group())
+            replacement = "".join(tokens)
+            text = text[:start] + replacement + text[end:]
+        return text
+
+    def tokenize(self, text: str) -> List[str]:
+        """Tokenization of numbers as in RT.
+         '0.9' -> '_0_0_', '_._', '_9_-1_'
+
+        Args:
+            text: number as string to be tokenized.
+
+        Returns:
+            extracted tokens.
+        """
+        tokens = []
+        matched = self.regex.match(text)
+        if matched:
+            sign, units, dot, decimals = matched.groups()
+            tokens = []
+            if sign:
+                tokens += [f"_{sign}_"]
+            tokens += [
+                f"_{number}_{position}_" for position, number in enumerate(units[::-1])
+            ][::-1]
+            if dot:
+                tokens += [f"_{dot}_"]
+            if decimals:
+                tokens += [
+                    f"_{number}_-{position}_"
+                    for position, number in enumerate(decimals, 1)
+                ]
+        return tokens
+
+    @staticmethod
+    def convert_tokens_to_float(tokens: List[str]) -> float:
+        """Converts tokens representing a float value into a float.
+        NOTE: Expects that non-floating tokens are strippped off
+
+        Args:
+            tokens: List of tokens, each representing a float.
+                E.g.: ['_0_0_', '_._', '_9_-1_', '_3_-2_', '_1_-3_']
+
+        Returns:
+            float: Float representation for the list of tokens.
+        """
+        try:
+            float_string = "".join([token.split("_")[1] for token in tokens])
+            float_value = float(float_string)
+        except ValueError:
+            float_value = -1
+        return float_value
+
+    def convert_tokens_to_string(self, tokens: List[str]) -> str:
+        """Converts tokens to string.
+
+        Args:
+            tokens: List of tokens.
+
+        Returns:
+            str: String representation of the tokens.
+        """
+        return "".join([token.split("_")[1] for token in tokens])
 
 
 class Xtal2txtTokenizer(PreTrainedTokenizer):
     def __init__(
-        self, vocab_file, 
+        self,
+        special_num_token: bool = False,
+        vocab_file=None,
         special_tokens={"cls_token": "[CLS]","sep_token": "[SEP]",}, 
-        model_max_length=None, 
-        padding_length=None, 
-        **kwargs
+        model_max_length=None,
+        padding_length=None,
+        **kwargs,
     ):
         super(Xtal2txtTokenizer, self).__init__(
             model_max_length=model_max_length, **kwargs
         )
-
-        self.vocab = self.load_vocab(vocab_file)
-        self.vocab_file = vocab_file
         self.truncation = False
         self.padding = False
-        self.padding_length = padding_length
+        self.padding_length = padding_length        
         
-        # Initialize special tokens
+
+        self.special_num_tokens = special_num_token
+        self.vocab = self.load_vocab(vocab_file)
+        self.vocab_file = vocab_file
+
+       # Initialize special tokens
         self.special_tokens = special_tokens if special_tokens is not None else {}
         self.add_special_tokens(self.special_tokens)
 
@@ -55,10 +156,18 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         else:
             raise ValueError(f"Unsupported file type: {file_extension}")
 
+
     def get_vocab(self):
         return self.vocab
 
+    def get_special_num_tokens(self, text):
+        num_tokenizer = NumTokenizer()
+        return num_tokenizer.num_matcher(text)
+
     def tokenize(self, text):
+        if self.special_num_tokens:
+            text = self.get_special_num_tokens(text)
+
         tokens = list(self.vocab.keys())
         string_tokens = [token for token in tokens if isinstance(token, str)]
         string_tokens.sort(key=len, reverse=True)
@@ -83,7 +192,17 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         return matches
 
     def convert_tokens_to_string(self, tokens):
-        return " ".join(tokens)
+        """Converts tokens to string."""
+        if self.special_num_tokens:
+            return "".join(
+                [
+                    token
+                    if not (token.startswith("_") and token.endswith("_"))
+                    else token.split("_")[1]
+                    for token in tokens
+                ]
+            )
+        return "".join(tokens)
 
     def _add_tokens(self, new_tokens, **kwargs):
         for token in new_tokens:
@@ -186,17 +305,36 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
 class SliceTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
-        vocab_file=SLICE_VOCAB,
+        special_num_token: bool = False,
+        vocab_file=None,
         model_max_length=None,
         padding_length=None,
         **kwargs,
     ):
+        if special_num_token:
+            vocab_file = SLICE_RT_VOCAB if vocab_file is None else vocab_file
+        else:
+            vocab_file = SLICE_VOCAB if vocab_file is None else vocab_file
         super(SliceTokenizer, self).__init__(
-            vocab_file,
+            special_num_token=special_num_token,
+            vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
         )
+
+    def convert_tokens_to_string(self, tokens):
+        """Converts tokens to string."""
+        if self.special_num_tokens:
+            return " ".join(
+                [
+                    token
+                    if not (token.startswith("_") and token.endswith("_"))
+                    else token.split("_")[1]
+                    for token in tokens
+                ]
+            )
+        return " ".join(tokens).rstrip()
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
@@ -212,20 +350,23 @@ class SliceTokenizer(Xtal2txtTokenizer):
 class CompositionTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
-        vocab_file=COMPOSITION_VOCAB,
+        special_num_token: bool = False,
+        vocab_file=None,
         model_max_length=None,
         padding_length=None,
         **kwargs,
     ):
+        if special_num_token:
+            vocab_file = COMPOSITION_RT_VOCAB if vocab_file is None else vocab_file
+        else:
+            vocab_file = COMPOSITION_VOCAB if vocab_file is None else vocab_file
         super(CompositionTokenizer, self).__init__(
-            vocab_file,
+            special_num_token=special_num_token,
+            vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
         )
-
-    def convert_tokens_to_string(self, tokens):
-        return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
@@ -240,17 +381,24 @@ class CompositionTokenizer(Xtal2txtTokenizer):
 
 class CifTokenizer(Xtal2txtTokenizer):
     def __init__(
-        self, vocab_file=CIF_VOCAB, model_max_length=None, padding_length=None, **kwargs
+        self,
+        special_num_token: bool = False,
+        vocab_file=None,
+        model_max_length=None,
+        padding_length=None,
+        **kwargs,
     ):
+        if special_num_token:
+            vocab_file = CIF_RT_VOCAB
+        else:
+            vocab_file = CIF_VOCAB
         super(CifTokenizer, self).__init__(
-            vocab_file,
+            special_num_token=special_num_token,
+            vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
         )
-
-    def convert_tokens_to_string(self, tokens):
-        return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
@@ -266,20 +414,23 @@ class CifTokenizer(Xtal2txtTokenizer):
 class CrysllmTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
+        special_num_token: bool = False,
         vocab_file=CRYSTAL_LLM_VOCAB,
         model_max_length=None,
         padding_length=None,
         **kwargs,
     ):
+        if special_num_token:
+            vocab_file = CRYSTAL_LLM_RT_VOCAB
+        else:
+            vocab_file = CRYSTAL_LLM_VOCAB
         super(CrysllmTokenizer, self).__init__(
-            vocab_file,
+            special_num_token=special_num_token,
+            vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
         )
-
-    def convert_tokens_to_string(self, tokens):
-        return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
