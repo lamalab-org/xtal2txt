@@ -1,8 +1,7 @@
 import random
 import numpy as np
 from pymatgen.core.structure import Structure
-from typing import Union, Tuple, List
-import re
+from typing import Union, List
 
 
 def set_seed(seed: int):

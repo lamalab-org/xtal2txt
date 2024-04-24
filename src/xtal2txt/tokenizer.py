@@ -14,7 +14,7 @@ from xtal2txt.analysis import (
 )
 
 from typing import List
-import re
+
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,7 +36,8 @@ ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
 class NumTokenizer:
     """Tokenize numbers as implemented in Regression Transformer.
-    https://www.nature.com/articles/s42256-023-00639-z"""
+    https://www.nature.com/articles/s42256-023-00639-z
+    https://github.com/IBM/regression-transformer/tree/main"""
 
     def __init__(self) -> None:
         """Tokenizer for numbers."""
@@ -290,7 +291,14 @@ class SliceTokenizer(Xtal2txtTokenizer):
     def convert_tokens_to_string(self, tokens):
         """Converts tokens to string."""
         if self.special_num_tokens:
-            return " ".join([token if not (token.startswith('_') and token.endswith('_')) else token.split('_')[1] for token in tokens])
+            return " ".join(
+                [
+                    token
+                    if not (token.startswith("_") and token.endswith("_"))
+                    else token.split("_")[1]
+                    for token in tokens
+                ]
+            )
         return " ".join(tokens).rstrip()
 
     def token_analysis(self, list_of_tokens):
@@ -363,7 +371,14 @@ class CifTokenizer(Xtal2txtTokenizer):
     def convert_tokens_to_string(self, tokens):
         """Converts tokens to string."""
         if self.special_num_tokens:
-            return "".join([token if not (token.startswith('_') and token.endswith('_')) else token.split('_')[1] for token in tokens])
+            return "".join(
+                [
+                    token
+                    if not (token.startswith("_") and token.endswith("_"))
+                    else token.split("_")[1]
+                    for token in tokens
+                ]
+            )
         return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):
@@ -401,7 +416,14 @@ class CrysllmTokenizer(Xtal2txtTokenizer):
     def convert_tokens_to_string(self, tokens):
         """Converts tokens to string."""
         if self.special_num_tokens:
-            return "".join([token if not (token.startswith('_') and token.endswith('_')) else token.split('_')[1] for token in tokens])
+            return "".join(
+                [
+                    token
+                    if not (token.startswith("_") and token.endswith("_"))
+                    else token.split("_")[1]
+                    for token in tokens
+                ]
+            )
         return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):

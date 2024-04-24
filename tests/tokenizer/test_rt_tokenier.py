@@ -1,5 +1,6 @@
-import pytest
 import os
+import pytest
+import difflib
 
 from xtal2txt.core import TextRep
 from xtal2txt.tokenizer import CifTokenizer, CrysllmTokenizer, SliceTokenizer
@@ -25,11 +26,13 @@ def cif_rt_tokenizer(scope="module"):
         special_num_token=True, model_max_length=512, truncation=False, padding=False
     )
 
+
 @pytest.fixture
 def crystal_llm_rt_tokenizer(scope="module"):
     return CrysllmTokenizer(
         special_num_token=True, model_max_length=512, truncation=False, padding=False
     )
+
 
 @pytest.fixture
 def slice_rt_tokenizer(scope="module"):
@@ -37,11 +40,11 @@ def slice_rt_tokenizer(scope="module"):
         special_num_token=True, model_max_length=512, truncation=False, padding=False
     )
 
-import difflib
 
 def print_diff(input_string, decoded_tokens):
     diff = difflib.ndiff(input_string.splitlines(1), decoded_tokens.splitlines(1))
-    print('\n'.join(diff))
+    print("\n".join(diff))
+
 
 def test_encode_decode(cif_rt_tokenizer, crystal_llm_rt_tokenizer, slice_rt_tokenizer):
     for name, struct in structures.items():
@@ -66,10 +69,6 @@ def test_encode_decode(cif_rt_tokenizer, crystal_llm_rt_tokenizer, slice_rt_toke
         except AssertionError:
             print_diff(input_string, decoded_tokens)
             raise
-
-
-
-
 
 
 def test_cif_rt_tokenize(cif_rt_tokenizer):

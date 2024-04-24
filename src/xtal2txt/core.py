@@ -4,7 +4,6 @@ from collections import Counter
 from pathlib import Path
 from typing import List, Union, Tuple
 
-import numpy as np
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core import Structure
 from pymatgen.core.structure import Molecule
