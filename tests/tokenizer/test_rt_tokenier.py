@@ -3,7 +3,7 @@ import pytest
 import difflib
 
 from xtal2txt.core import TextRep
-from xtal2txt.tokenizer import CifTokenizer, CrysllmTokenizer, SliceTokenizer
+from xtal2txt.tokenizer import CifTokenizer, CrysllmTokenizer, SliceTokenizer, CompositionTokenizer
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -41,13 +41,26 @@ def slice_rt_tokenizer(scope="module"):
     )
 
 
+@pytest.fixture
+def composition_rt_tokenizer(scope="module"):
+    return CompositionTokenizer(
+        special_num_token=True, model_max_length=512, truncation=False, padding=False
+    )
+
+
 def print_diff(input_string, decoded_tokens):
     diff = difflib.ndiff(input_string.splitlines(1), decoded_tokens.splitlines(1))
     print("\n".join(diff))
 
 
-def test_encode_decode(cif_rt_tokenizer, crystal_llm_rt_tokenizer, slice_rt_tokenizer):
+def test_encode_decode(cif_rt_tokenizer, crystal_llm_rt_tokenizer, slice_rt_tokenizer,composition_rt_tokenizer):
     for name, struct in structures.items():
+
+        input_string = struct.get_composition()
+        token_ids = composition_rt_tokenizer.encode(input_string)
+        decoded_tokens = composition_rt_tokenizer.decode(token_ids)
+        assert input_string == decoded_tokens
+
         input_string = struct.get_cif_string(format="p1", decimal_places=2)
         token_ids = cif_rt_tokenizer.encode(input_string)
         decoded_tokens = cif_rt_tokenizer.decode(token_ids)
@@ -61,14 +74,19 @@ def test_encode_decode(cif_rt_tokenizer, crystal_llm_rt_tokenizer, slice_rt_toke
         input_string = struct.get_slice()
         token_ids = slice_rt_tokenizer.encode(input_string)
         decoded_tokens = slice_rt_tokenizer.decode(token_ids)
-        print(input_string)
-        print(decoded_tokens)
-        print(input_string == decoded_tokens)
         try:
             assert input_string.strip() == decoded_tokens
         except AssertionError:
             print_diff(input_string, decoded_tokens)
             raise
+
+
+def test_composition_rt_tokens(composition_rt_tokenizer) -> None:
+    excepted_output = ["Se", "_2_0_", "Se", "_3_0_"]
+    input_string = "Se2Se3"
+    tokens = composition_rt_tokenizer.tokenize(input_string)
+    assert tokens == excepted_output
+
 
 
 def test_cif_rt_tokenize(cif_rt_tokenizer):

@@ -51,7 +51,7 @@ class NumTokenizer:
             r"\d+(?:\.\d+)?"  # Match any number, whether it is part of a string or not
         )
         matches = list(re.finditer(pattern, text))
-        for match in reversed(matches):  # reverse bcos length changes
+        for match in reversed(matches):  #since we are replacing substring with a bigger subtring the string we are working on 
             start, end = match.start(), match.end()
             tokens = self.tokenize(match.group())
             replacement = "".join(tokens)
@@ -177,7 +177,17 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         return matches
 
     def convert_tokens_to_string(self, tokens):
-        return " ".join(tokens)
+        """Converts tokens to string."""
+        if self.special_num_tokens:
+            return "".join(
+                [
+                    token
+                    if not (token.startswith("_") and token.endswith("_"))
+                    else token.split("_")[1]
+                    for token in tokens
+                ]
+            )
+        return "".join(tokens)
 
     def _add_tokens(self, new_tokens, **kwargs):
         for token in new_tokens:
@@ -316,25 +326,22 @@ class CompositionTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
         special_num_token: bool = False,
-        vocab_file=COMPOSITION_VOCAB,
+        vocab_file=None,
         model_max_length=None,
         padding_length=None,
         **kwargs,
     ):
         if special_num_token:
-            vocab_file = COMPOSITION_VOCAB
+            vocab_file = COMPOSITION_RT_VOCAB if vocab_file is None else vocab_file
         else:
-            vocab_file = COMPOSITION_VOCAB
+            vocab_file = COMPOSITION_VOCAB if vocab_file is None else vocab_file
         super(CompositionTokenizer, self).__init__(
-            pecial_num_token=special_num_token,
+            special_num_token=special_num_token,
             vocab_file=vocab_file,
             model_max_length=model_max_length,
             padding_length=padding_length,
             **kwargs,
         )
-
-    def convert_tokens_to_string(self, tokens):
-        return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
@@ -368,19 +375,6 @@ class CifTokenizer(Xtal2txtTokenizer):
             **kwargs,
         )
 
-    def convert_tokens_to_string(self, tokens):
-        """Converts tokens to string."""
-        if self.special_num_tokens:
-            return "".join(
-                [
-                    token
-                    if not (token.startswith("_") and token.endswith("_"))
-                    else token.split("_")[1]
-                    for token in tokens
-                ]
-            )
-        return "".join(tokens)
-
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
         token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
@@ -412,19 +406,6 @@ class CrysllmTokenizer(Xtal2txtTokenizer):
             padding_length=padding_length,
             **kwargs,
         )
-
-    def convert_tokens_to_string(self, tokens):
-        """Converts tokens to string."""
-        if self.special_num_tokens:
-            return "".join(
-                [
-                    token
-                    if not (token.startswith("_") and token.endswith("_"))
-                    else token.split("_")[1]
-                    for token in tokens
-                ]
-            )
-        return "".join(tokens)
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
