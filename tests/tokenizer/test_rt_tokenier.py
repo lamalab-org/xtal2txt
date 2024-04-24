@@ -1,6 +1,22 @@
 import pytest
-from xtal2txt.tokenizer import CifTokenizer, CrysllmTokenizer
 import os
+
+from xtal2txt.core import TextRep
+from xtal2txt.tokenizer import CifTokenizer, CrysllmTokenizer, SliceTokenizer
+
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+structures = {
+    "N2": TextRep.from_input(os.path.join(THIS_DIR, "..", "data", "N2_p1.cif")),
+    "srtio3_p1": TextRep.from_input(
+        os.path.join(THIS_DIR, "..", "data", "SrTiO3_p1.cif")
+    ),
+    "srtio3_symmetrized": TextRep.from_input(
+        os.path.join(THIS_DIR, "..", "data", "SrTiO3_symmetrized.cif")
+    ),
+}
 
 
 @pytest.fixture
@@ -9,12 +25,51 @@ def cif_rt_tokenizer(scope="module"):
         special_num_token=True, model_max_length=512, truncation=False, padding=False
     )
 
-
 @pytest.fixture
 def crystal_llm_rt_tokenizer(scope="module"):
     return CrysllmTokenizer(
         special_num_token=True, model_max_length=512, truncation=False, padding=False
     )
+
+@pytest.fixture
+def slice_rt_tokenizer(scope="module"):
+    return SliceTokenizer(
+        special_num_token=True, model_max_length=512, truncation=False, padding=False
+    )
+
+import difflib
+
+def print_diff(input_string, decoded_tokens):
+    diff = difflib.ndiff(input_string.splitlines(1), decoded_tokens.splitlines(1))
+    print('\n'.join(diff))
+
+def test_encode_decode(cif_rt_tokenizer, crystal_llm_rt_tokenizer, slice_rt_tokenizer):
+    for name, struct in structures.items():
+        input_string = struct.get_cif_string(format="p1", decimal_places=2)
+        token_ids = cif_rt_tokenizer.encode(input_string)
+        decoded_tokens = cif_rt_tokenizer.decode(token_ids)
+        assert input_string == decoded_tokens
+
+        input_string = struct.get_crystal_llm_rep()
+        token_ids = crystal_llm_rt_tokenizer.encode(input_string)
+        decoded_tokens = crystal_llm_rt_tokenizer.decode(token_ids)
+        assert input_string == decoded_tokens
+
+        input_string = struct.get_slice()
+        token_ids = slice_rt_tokenizer.encode(input_string)
+        decoded_tokens = slice_rt_tokenizer.decode(token_ids)
+        print(input_string)
+        print(decoded_tokens)
+        print(input_string == decoded_tokens)
+        try:
+            assert input_string.strip() == decoded_tokens
+        except AssertionError:
+            print_diff(input_string, decoded_tokens)
+            raise
+
+
+
+
 
 
 def test_cif_rt_tokenize(cif_rt_tokenizer):
