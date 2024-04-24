@@ -176,6 +176,10 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         return matches
 
     def convert_tokens_to_string(self, tokens):
+        if self.special_num_tokens:
+            num_tokenizer = NumTokenizer()
+            print("I am here")
+            return num_tokenizer.convert_tokens_to_string(tokens)
         return " ".join(tokens)
 
     def _add_tokens(self, new_tokens, **kwargs):
@@ -390,7 +394,9 @@ class CrysllmTokenizer(Xtal2txtTokenizer):
         )
 
     def convert_tokens_to_string(self, tokens):
-        return "".join(tokens)
+        """Converts tokens to string."""
+        
+        return "".join([token if not (token.startswith('_') and token.endswith('_')) else token.split('_')[1] for token in tokens])
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
