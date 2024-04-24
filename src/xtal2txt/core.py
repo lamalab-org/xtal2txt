@@ -4,7 +4,6 @@ from collections import Counter
 from pathlib import Path
 from typing import List, Union, Tuple
 
-import numpy as np
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core import Structure
 from pymatgen.core.structure import Molecule
@@ -75,7 +74,7 @@ class TextRep:
             structure = Structure.from_str(str(input_data), "cif")
 
         return cls(structure, transformations)
-    
+
     def apply_transformations(self) -> None:
         """
         Apply transformations to the structure.
@@ -335,8 +334,6 @@ class TextRep:
         output += "\n" + self.get_wyckoff_positions()
 
         return output
-
-    
 
     def get_atoms_params_rep(
         self, lattice_params: bool = False, decimal_places: int = 1
