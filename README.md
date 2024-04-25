@@ -63,6 +63,111 @@ The most recent code and data can be installed directly from GitHub with:
 $ pip install git+https://github.com/lamalab-org/xtal2txt.git
 ```
 
+## Using Xtal2Txt Tokenizers
+
+By default the, the tokenizer is initialized with \[CLS\] and \[SEP\]
+tokens. For example see the SliceTokenizer usage.
+
+Initialization with \[CLS\] and \[SEP\] Tokens:
+
+``` python
+from xtal2txt.tokenizer import SliceTokenizer
+
+tokenizer = SliceTokenizer(
+                model_max_length=512, 
+                truncation=True, 
+                padding="max_length", 
+                max_length=512
+            )
+print(tokenizer.cls_token) #[CLS]
+```
+
+You can access the \[CLS\] token using the [cls_token]{.title-ref}
+attribute of the tokenizer. During decoding, you can utilize the
+[skip_special_tokens]{.title-ref} parameter to skip these special
+tokens.
+
+Decoding with Skipping Special Tokens:
+
+``` python
+tokenizer.decode(token_ids, skip_special_tokens=True)
+```
+
+
+## Text Representation with Xtal2Txt
+
+The `TextRep` class in `xtal2txt.core`
+facilitates the transformation of crystal structures into different text
+representations. Below is an example of its usage:
+
+``` python
+from xtal2txt.core import TextRep
+from pymatgen.core import Structure
+
+
+# Load structure from a CIF file
+from_file = "/home/so87pot/n0w0f/xtal2txt/tests/data/InCuS2_p1.cif"
+structure = Structure.from_file(from_file, "cif")
+
+Initialize TextRep Class
+text_rep = TextRep.from_input(structure)
+
+requested_reps = [
+        "cif_p1",
+        "slice",
+        "atoms",
+        "atoms_params",
+        "crystal_llm_rep",
+        "zmatrix"
+    ]
+
+# Get the requested text representations
+requested_text_reps = text_rep.get_requested_text_reps(requested_reps)
+
+See more details in docs
+
+```
+
+
+## Initializing tokenizers with custom special tokens
+
+In scenarios where the \[CLS\] token is not required, you can initialize
+the tokenizer with an empty special_tokens dictionary.
+
+Initialization without \[CLS\] and \[SEP\] Tokens:
+
+``` python
+tokenizer = SliceTokenizer(
+                model_max_length=512, 
+                special_tokens={}, 
+                truncation=True,
+                padding="max_length", 
+                max_length=512
+            )
+```
+
+All `Xtal2txtTokenizer` instances inherit from
+[PreTrainedTokenizer](https://huggingface.co/docs/transformers/v4.40.1/en/main_classes/tokenizer#transformers.PreTrainedTokenizer) and accept arguments compatible with the Hugging Face
+tokenizer.
+
+## Tokenizers with Special Number Tokenization
+
+The `special_num_token` argument (by default False) can be
+set to true to tokenize numbers in a special way as designed and
+implemented by
+[RegressionTransformer](https://www.nature.com/articles/s42256-023-00639-z).
+
+``` python
+tokenizer = SliceTokenizer(
+				special_num_token=True,
+                model_max_length=512, 
+                special_tokens={}, 
+                truncation=True,
+                padding="max_length", 
+                max_length=512
+            )
+```
+
 ## 👐 Contributing
 
 Contributions, whether filing an issue, making a pull request, or forking, are appreciated. See
