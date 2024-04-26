@@ -30,6 +30,8 @@ CIF_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab_rt.json")
 CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
 CRYSTAL_LLM_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab_rt.json")
 
+SMILES_VOCAB = os.path.join(THIS_DIR, "vocabs", "smiles_vocab.json") 
+SMILES_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "smiles_vocab_rt.json")   
 
 ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
@@ -441,6 +443,30 @@ class CrysllmTokenizer(Xtal2txtTokenizer):
             analysis_masks[next((k for k, v in token_type.items() if token in v), None)]
             for token in list_of_tokens
         ]
+
+
+
+class SmilesTokenizer(Xtal2txtTokenizer):
+    def __init__(
+        self,
+        special_num_token: bool = False,
+        vocab_file=CRYSTAL_LLM_VOCAB,
+        model_max_length=None,
+        padding_length=None,
+        **kwargs,
+    ):
+        if special_num_token:
+            vocab_file = SMILES_RT_VOCAB
+        else:
+            vocab_file = SMILES_VOCAB
+        super(SmilesTokenizer, self).__init__(
+            special_num_token=special_num_token,
+            vocab_file=vocab_file,
+            model_max_length=model_max_length,
+            padding_length=padding_length,
+            **kwargs,
+        )
+
 
 
 class RobocrysTokenizer:
