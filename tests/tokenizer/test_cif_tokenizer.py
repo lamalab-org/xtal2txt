@@ -25,5 +25,5 @@ def test_encode_decode(tokenizer):
     for name, struct in structures.items():
         input_string = struct.get_cif_string()
         token_ids = tokenizer.encode(input_string)
-        decoded_tokens = tokenizer.decode(token_ids)
+        decoded_tokens = tokenizer.decode(token_ids,skip_special_tokens=True)
         assert input_string == decoded_tokens
