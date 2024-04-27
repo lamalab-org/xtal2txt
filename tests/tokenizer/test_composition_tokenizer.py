@@ -39,6 +39,7 @@ def test_encode_decode(tokenizer):
     decoded_tokens = tokenizer.decode(token_ids,skip_special_tokens=True)
 
 
+
 @pytest.mark.parametrize("input_string,expected", [
     ("Ba2ClSr", ['[CLS]','Ba', '2', 'Cl','Sr','[SEP]']),
     ("BrMn2V", ['[CLS]','Br', 'Mn', '2', 'V','[SEP]']),

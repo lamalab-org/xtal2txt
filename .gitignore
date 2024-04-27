@@ -301,3 +301,4 @@ $RECYCLE.BIN/
 .pdm-python
 .venv/
 .pdm-build
+scratch/

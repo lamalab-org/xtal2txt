@@ -16,19 +16,31 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        shell: bash
+        shell: bash -l {0}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - uses: pdm-project/setup-pdm@v3
-        name: Set up PDM
+      # - uses: pdm-project/setup-pdm@v3
+      #   name: Set up PDM
+      #   with:
+      #     python-version: ${{ matrix.python-version }}
+      #     cache: true
+
+      - name: Setup Mambaforge
+        uses: conda-incubator/setup-miniconda@v2
         with:
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          use-mamba: true
           python-version: ${{ matrix.python-version }}
-          cache: true
+          conda-channels: anaconda, conda-forge
+          activate-environment: test
 
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: |
+          pip install -e ".[dev]"
+          mamba install -c conda-forge openbabel -y
 
       - name: Test
         run: pytest tests

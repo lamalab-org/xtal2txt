@@ -50,6 +50,7 @@ def test_encode_decode(tokenizer):
     assert input_string == decoded_tokens
 
 
+
 @pytest.mark.parametrize("input_string,expected", [
     ("Se Se Mo 0 2 o o + 0 2 + o o 0 2 o + o 1 2 o o + 1 2 o + o 1 2 + o o", ['[CLS]','Se', 'Se', 'Mo', '0', '2', 'o o +', '0', '2', '+ o o', '0', '2', 'o + o', '1', '2', 'o o +', '1', '2', 'o + o', '1', '2', '+ o o','[SEP]']),
     ("H H O", ['[CLS]','H', 'H', 'O','[SEP]']),
