@@ -53,7 +53,9 @@ class NumTokenizer:
             r"\d+(?:\.\d+)?"  # Match any number, whether it is part of a string or not
         )
         matches = list(re.finditer(pattern, text))
-        for match in reversed(matches):  #since we are replacing substring with a bigger subtring the string we are working on 
+        for match in reversed(
+            matches
+        ):  # since we are replacing substring with a bigger subtring the string we are working on
             start, end = match.start(), match.end()
             tokens = self.tokenize(match.group())
             replacement = "".join(tokens)
@@ -125,7 +127,10 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         self,
         special_num_token: bool = False,
         vocab_file=None,
-        special_tokens={"cls_token": "[CLS]","sep_token": "[SEP]",}, 
+        special_tokens={
+            "cls_token": "[CLS]",
+            "sep_token": "[SEP]",
+        },
         model_max_length=None,
         padding_length=None,
         **kwargs,
@@ -135,14 +140,13 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         )
         self.truncation = False
         self.padding = False
-        self.padding_length = padding_length        
-        
+        self.padding_length = padding_length
 
         self.special_num_tokens = special_num_token
         self.vocab = self.load_vocab(vocab_file)
         self.vocab_file = vocab_file
 
-       # Initialize special tokens
+        # Initialize special tokens
         self.special_tokens = special_tokens if special_tokens is not None else {}
         self.add_special_tokens(self.special_tokens)
 
@@ -157,7 +161,6 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
                 return json.load(file)
         else:
             raise ValueError(f"Unsupported file type: {file_extension}")
-
 
     def get_vocab(self):
         return self.vocab
@@ -183,7 +186,9 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
             matches = [self.cls_token] + matches
 
         if self.truncation and len(matches) > self.model_max_length:
-            matches = matches[: self.model_max_length-1]   # -1 since we add sep token later
+            matches = matches[
+                : self.model_max_length - 1
+            ]  # -1 since we add sep token later
 
         if self.sep_token is not None:
             matches += [self.sep_token]
