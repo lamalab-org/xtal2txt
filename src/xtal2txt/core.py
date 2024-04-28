@@ -2,7 +2,7 @@ import random
 import re
 from collections import Counter
 from pathlib import Path
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional
 
 from invcryrep.invcryrep import InvCryRep
 from pymatgen.core import Structure
@@ -12,6 +12,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from robocrys import StructureCondenser, StructureDescriber
 
 from xtal2txt.transforms import TransformationCallback
+from xtal2txt.local_env import LocalEnvAnalyzer
 
 
 class TextRep:
@@ -224,6 +225,26 @@ class TextRep:
             composition_string = self.structure.composition.hill_formula
             composition = composition_string.replace(" ", "")
         return composition
+
+    def get_local_env_rep(self, local_env_kwargs: Optional[dict] = None) -> str:
+        """
+        Get the local environment representation of the crystal structure.
+
+        The local environment representation is a string that contains
+        the space group symbol and the local environment of each atom in the unit cell.
+        The local environment of each atom is represented as SMILES string and the
+        Wyckoff symbol of the local environment.
+
+        Args:
+            local_env_kwargs (dict): Keyword arguments to pass to the LocalEnvAnalyzer.
+
+        Returns:
+            str: The local environment representation of the crystal structure.
+        """
+        if not local_env_kwargs:
+            local_env_kwargs = {}
+        analyzer = LocalEnvAnalyzer(**local_env_kwargs)
+        return analyzer.structure_to_local_env_string(self.structure)
 
     def get_crystal_llm_rep(
         self,

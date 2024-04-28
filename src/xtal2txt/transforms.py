@@ -3,6 +3,7 @@ import numpy as np
 from pymatgen.core.structure import Structure
 from typing import Union, List
 
+
 def set_seed(seed: int):
     """
     Set the random seed for both random and numpy.random.
