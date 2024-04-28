@@ -74,3 +74,11 @@ def test_robocrys_for_cif_format() -> None:
 def test_get_robocrys_rep() -> None:
     excepted_output = "SrTiO3 is (Cubic) Perovskite structured and crystallizes in the cubic Pm-3m space group. Sr(1)2+ is bonded to twelve equivalent O(1)2- atoms to form SrO12 cuboctahedra that share corners with twelve equivalent Sr(1)O12 cuboctahedra, faces with six equivalent Sr(1)O12 cuboctahedra, and faces with eight equivalent Ti(1)O6 octahedra. All Sr(1)-O(1) bond lengths are 2.77 Å. Ti(1)4+ is bonded to six equivalent O(1)2- atoms to form TiO6 octahedra that share corners with six equivalent Ti(1)O6 octahedra and faces with eight equivalent Sr(1)O12 cuboctahedra. The corner-sharing octahedra are not tilted. All Ti(1)-O(1) bond lengths are 1.96 Å. O(1)2- is bonded in a distorted linear geometry to four equivalent Sr(1)2+ and two equivalent Ti(1)4+ atoms."
     assert srtio3_p1.get_robocrys_rep() == excepted_output
+
+
+def test_get_local_env_rep() -> None:
+    expected_output = """Pm-3m
+Sr2+ (1a) [O][Sr][O].[O].[O].[O].[O].[O].[O].[O].[O].[O].[O]
+Ti4+ (1b) [O][Ti]([O])([O])([O])([O])[O]
+O2- (3c) [Ti]O[Ti]"""
+    assert srtio3_p1.get_local_env_rep() == expected_output
