@@ -468,6 +468,7 @@ class TextRep:
                 decimal_places=decimal_places,
             ),
             "zmatrix": self._safe_call(self.get_zmatrix_rep),
+            "local_env": self._safe_call(self.get_local_env_rep, local_env_kwargs=None),
         }
 
     def get_requested_text_reps(
@@ -508,6 +509,8 @@ class TextRep:
                 decimal_places=decimal_places,
             ),
             "zmatrix": lambda: self._safe_call(self.get_zmatrix_rep, decimal_places=1),
+            "local_env": lambda: self._safe_call(self.get_local_env_rep,
+                                                 local_env_kwargs=None),
         }
 
         return {rep: all_reps[rep]() for rep in requested_reps if rep in all_reps}
