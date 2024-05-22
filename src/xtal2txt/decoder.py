@@ -17,7 +17,7 @@ class DecodeTextRep:
         Generating a pymatgen object from the output of the get_wyckoff_rep() method by using...
         pyxtal package. In this method, all data are extracted from the multi-line string of the...
         mentioned method.
-        In pyxtal package, a 3D crystal is produced by specifying the dimensions, elements,...
+        In pyxtal package, a 3D crystal is produced by specifying the dimensions, elements,
         composition of elements, space group, and sites as wyckoff positions of the elements.
 
         Params:
@@ -61,9 +61,7 @@ class DecodeTextRep:
             cell = pyLattice.from_para(
                 float(a), float(b), float(c), float(alpha), float(beta), float(gamma)
             )
-            xtal_struc.from_random(
-                dimensions, spg, atoms, composition, sites=sites, lattice=cell
-            )
+            xtal_struc.from_random(dimensions, spg, atoms, composition, sites=sites, lattice=cell)
         else:
             xtal_struc.from_random(dimensions, spg, atoms, composition, sites=sites)
 
@@ -187,7 +185,6 @@ class MatchRep:
 
     def wyckoff_matcher(
         self,
-        # input: str,
         ltol=0.2,
         stol=0.5,
         angle_tol=5,
@@ -215,9 +212,7 @@ class MatchRep:
         original_struct = self.structure
 
         # output_struct = self.wyckoff_decoder(input, lattice_params)
-        output_struct = DecodeTextRep(self.text).wyckoff_decoder(
-            self.text, lattice_params=True
-        )
+        output_struct = DecodeTextRep(self.text).wyckoff_decoder(self.text, lattice_params=True)
 
         return StructureMatcher(
             ltol,
@@ -231,7 +226,6 @@ class MatchRep:
 
     def llm_matcher(
         self,
-        # input: str,
         ltol=0.2,
         stol=0.5,
         angle_tol=5,
@@ -241,8 +235,8 @@ class MatchRep:
         attempt_supercell=True,
     ):
         """
-        To check if pymatgen object from the original cif file match with the generated...
-        pymatgen structure from llm_decoder method out of llm representation...
+        To check if pymatgen object from the original cif file match with the generated
+        pymatgen structure from llm_decoder method out of llm representation
         using fit() method of StructureMatcher module in pymatgen package.
 
         Params:
@@ -258,8 +252,6 @@ class MatchRep:
 
         original_struct = self.structure
         output_struct = DecodeTextRep(self.text).llm_decoder(self.text)
-        print(original_struct)
-        print(output_struct)
 
         return StructureMatcher(
             ltol,
@@ -283,8 +275,8 @@ class MatchRep:
         attempt_supercell=True,
     ):
         """
-        To check if pymatgen object from the original cif file match with the generated...
-        pymatgen structure from cif_string_decoder_sym method out of string cif representation...
+        To check if pymatgen object from the original cif file match with the generated
+        pymatgen structure from cif_string_decoder_sym method out of string cif representation.
         using fit() method of StructureMatcher module in pymatgen package.
 
         Params:
@@ -313,7 +305,6 @@ class MatchRep:
 
     def cif_string_matcher_p1(
         self,
-        #    input: str,
         ltol=0.2,
         stol=0.5,
         angle_tol=5,
@@ -323,8 +314,8 @@ class MatchRep:
         attempt_supercell=True,
     ):
         """
-        To check if pymatgen object from the original cif file match with the generated...
-        pymatgen structure from cif_string_decoder_p1 method out of string cif representation...
+        To check if pymatgen object from the original cif file match with the generated
+        pymatgen structure from cif_string_decoder_p1 method out of string cif representation
         using fit() method of StructureMatcher module in pymatgen package.
 
         Params:

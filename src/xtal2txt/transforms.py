@@ -62,7 +62,7 @@ class TransformationCallback:
         """
         Randomly translate one or more atoms in a structure.
 
-        Parameters:
+        Args:
             structure (Structure): The input structure.
             max_indices (int): The maximum number of atoms to translate. Defaults to 1.
             vector (List[float]): The translation vector. Defaults to [0.25, 0.25, 0.25].
@@ -75,9 +75,7 @@ class TransformationCallback:
         indices = random.sample(
             range(len(structure.sites)), min(max_indices, len(structure.sites))
         )  # ensures that we select at most max_indices from the available sites
-        structure.translate_sites(
-            indices=indices, vector=vector, frac_coords=True, **kwargs
-        )
+        structure.translate_sites(indices=indices, vector=vector, frac_coords=True, **kwargs)
         return structure
 
     @staticmethod
