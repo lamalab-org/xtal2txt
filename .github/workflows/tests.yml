@@ -39,8 +39,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          mamba install -c conda-forge openbabel fftw -y
           pip install -e ".[dev]"
-          mamba install -c conda-forge openbabel -y
-
+          pip install pyxtal 
+          
       - name: Test
         run: pytest tests

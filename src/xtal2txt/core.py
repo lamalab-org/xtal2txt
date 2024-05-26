@@ -53,11 +53,12 @@ class TextRep:
         """
         Instantiate the TextRep class object with the pymatgen structure from a cif file, a cif string, or a pymatgen Structure object.
 
-        Parameters:
-            input_data : cif file of a crystal structure, a cif string, or a pymatgen Structure object.
+        Args:
+            input_data (Union[str,pymatgen.core.structure.Structure]): A cif file of a crystal structure, a cif string,
+                or a pymatgen Structure object.
 
         Returns:
-            TextRep
+            TextRep: A TextRep object.
         """
         if isinstance(input_data, Structure):
             structure = input_data
@@ -96,40 +97,33 @@ class TextRep:
         """
         Rounds float numbers in the given string to the specified number of decimal places using regex.
 
-        Parameters:
-            original_string : str, the input string containing float numbers.
-            decimal_places : int, the number of decimal places to round float numbers.
+        Args:
+            original_string (str): The input string.
+            decimal_places (int): The number of decimal places to round to.
 
         Returns:
-            A new string with rounded float numbers.
+            str: The string with the float numbers rounded to the specified number of decimal places.
         """
         pattern = r"\b\d+\.\d+\b"
         matches = re.findall(pattern, original_string)
         rounded_numbers = [round(float(match), decimal_places) for match in matches]
-        new_string = re.sub(
-            pattern, lambda x: str(rounded_numbers.pop(0)), original_string
-        )
+        new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
         return new_string
 
-    def get_cif_string(
-        self, format: str = "symmetrized", decimal_places: int = 3
-    ) -> str:
+    def get_cif_string(self, format: str = "symmetrized", decimal_places: int = 3) -> str:
         """
         Generate CIF as string in multi-line format.
 
         All float numbers can be rounded to the specified number (decimal_places).
         Currently supports two formats. Symmetrized (cif with symmetry operations and the least symmetric basis) ...
         and P1 (conventional unit cell , with all the atoms listed and only identity as symmetry operation).
-        TODO: cif format with bonding blocks
 
-
-        Parameters:
-            format : str, optional, to specify the format of the cif string. Defaults to "symmetrized".
-            decimal_places : int, optional, to specify the rounding digit for float numbers.
-                            Defaults to 3
+        Args:
+            format (str): The format of the CIF file. Can be "symmetrized" or "p1".
+            decimal_places (int): The number of decimal places to round to.
 
         Returns:
-            A multi-line string representation of CIF.
+            str: The CIF string.
         """
 
         if format == "symmetrized":
@@ -140,7 +134,7 @@ class TextRep:
                     symmetrized_structure,
                     symprec=0.1,
                     significant_figures=decimal_places,
-                ).ciffile
+                ).cif_file
             )
             cif = "\n".join(cif_string.split("\n")[1:])
             return self.round_numbers_in_string(cif, decimal_places)
@@ -156,29 +150,24 @@ class TextRep:
 
         All float numbers can be rounded to a specific number (decimal_places).
 
-        Parameters:
-            decimal_places : int, optional, to specify the rounding digit for float numbers.
-                            Defaults to 3
+        Args:
+            decimal_places (int): The number of decimal places to round to.
 
         Returns:
-            A list of strings of the mentioned parameters.
+            List[str]: The lattice parameters.
         """
-        return [
-            str(round(i, decimal_places)) for i in self.structure.lattice.parameters
-        ]
+        return [str(round(i, decimal_places)) for i in self.structure.lattice.parameters]
 
     def get_coords(self, name: str = "cartesian", decimal_places: int = 3) -> List[str]:
         """
         Return list of atoms in unit cell for with their positions in Cartesian or fractional coordinates as per choice.
 
-        Parameters:
-            name : str
-                Specifies the name of the coordinate system to extract the positions of the particles. default is "cartesian".
-            decimal_places : int, optional, to specify the rounding digit for float numbers.
-                            Defaults to 3
+        Args:
+            name (str): The name of the coordinates. Can be "cartesian" or "fractional".
+            decimal_places (int): The number of decimal places to round to.
 
         Returns:
-            A list of atoms with their positions inside the unit cell.
+            List[str]: The list of atoms with their positions.
         """
         elements = []
         for site in self.structure.sites:
@@ -198,11 +187,11 @@ class TextRep:
         """Returns SLICE representation of the crystal structure.
         https://www.nature.com/articles/s41467-023-42870-7
 
-        Parameters:
-            primitive : bool, optional, to specify if the primitive structure is required. Defaults to True.
+        Args:
+            primitive (bool): Whether to use the primitive structure or not.
 
         Returns:
-            str: The calculated slice.
+            str: The SLICE representation of the crystal structure.
         """
 
         if primitive:
@@ -249,21 +238,18 @@ class TextRep:
     def get_crystal_llm_rep(
         self,
         permute_atoms: bool = False,
-        translate_atoms: bool = False,
     ) -> str:
         """
         Code adopted from https://github.com/facebookresearch/crystal-llm/blob/main/llama_finetune.py
         https://openreview.net/pdf?id=0r5DE2ZSwJ
-        TODO: kwargs and customizable parameters
-        TODO: Rounding parameters user defined
-        TODO: fractional/ caartesian optional
-        TODO: Translation of the structure optional
-        Returns the representation as per the above citation,  lattice length( the lengths with one decimal place), angles (as integers), atoms and their coordinates with line breaks...
-        Fractional coordinates are always represented with two digits
-        3D coordinates are combined with spaces and all other crystal components are combined with newlines
-        in the line after that, then the element following with its Cartesian and fractional...
-        coordinates as floats in a separate line.
 
+        Returns the representation as per the above citation.
+
+        Args:
+            permute_atoms (bool): Whether to permute the atoms in the unit cell.
+
+        Returns:
+            str: The crystal-llm representation of the crystal structure.
         """
 
         lengths = self.structure.lattice.parameters[:3]
@@ -294,9 +280,6 @@ class TextRep:
     def get_robocrys_rep(self):
         """
         https://github.com/hackingmaterials/robocrystallographer/tree/main
-        TODO: pinned  matminer to 0.9.1.dev14 (check if can be relaxed ?)
-        TODO: check any post processing for better tokenization (rounding, replacing unicodes etc..)
-
         """
 
         condensed_structure = self.condenser.condense_structure(self.structure)
@@ -308,10 +291,10 @@ class TextRep:
         number and letter.
 
         Returns:
-            ouput: str
-                A multi-line string that contain elements of the unit cell along with their...
-                wyckoff position in each line.
-                Hint: At the end of the string, there is an additional newline character.
+            str:  A multi-line string that contain elements of the unit cell along with their wyckoff position in each line.
+
+        Hint:
+            At the end of the string, there is an additional newline character.
         """
 
         spacegroup_analyzer = SpacegroupAnalyzer(self.structure)
@@ -339,14 +322,13 @@ class TextRep:
     def get_wycryst(self):
         """
         Obtaining the wyckoff representation for crystal structures that include:
-            chemcial formula
+            chemical formula
             space group number
             elements of the unit cell with their wyckoff positions.
 
         Returns:
-            output: str
-                A multi-line string, which contain mentioned properties of the crystal...
-                structure in each separate line.
+            str: A multi-line string that contains the chemical formula, space group number,
+                and the elements of the unit cell with their wyckoff positions.
         """
         output = ""
         chemical_formula = self.structure.composition.formula
@@ -356,25 +338,18 @@ class TextRep:
 
         return output
 
-    def get_atoms_params_rep(
-        self, lattice_params: bool = False, decimal_places: int = 1
-    ) -> str:
+    def get_atoms_params_rep(self, lattice_params: bool = False, decimal_places: int = 1) -> str:
         """
         Generating a string with the elements of composition inside the crystal lattice with the option to
         get the lattice parameters as angles (int) and lengths (float) in a string with a space
         between them
 
-        Params:
-            lattice_params: boolean, optional
-                To specify whether use lattice parameters in generating crystal structure.
-                Defaults to False
-            decimal_places : int, optional,
-                to specify the rounding digit for float numbers.
-                Defaults to 2
+        Args:
+            lattice_params (bool): Whether to include lattice parameters or not.
+            decimal_places (int): The number of decimal places to round to.
 
         Returns:
-            output: str
-                An oneline string.
+            str: The string representation of the crystal structure.
         """
 
         try:
@@ -471,18 +446,16 @@ class TextRep:
             "local_env": self._safe_call(self.get_local_env_rep, local_env_kwargs=None),
         }
 
-    def get_requested_text_reps(
-        self, requested_reps: List[str], decimal_places: int = 2
-    ):
+    def get_requested_text_reps(self, requested_reps: List[str], decimal_places: int = 2):
         """
         Returns the requested Text representations of the crystal structure in a dictionary.
 
-        Parameters:
-            requested_reps : List of representations to return.
-            decimal_places : Number of decimal places for the cif strings.
+        Args:
+            requested_reps (List[str]): The list of representations to return.
+            decimal_places (int): The number of decimal places to round to.
 
         Returns:
-            Dictionary of requested representations.
+            dict: A dictionary containing the requested text representations of the crystal structure.
         """
 
         all_reps = {
@@ -509,8 +482,7 @@ class TextRep:
                 decimal_places=decimal_places,
             ),
             "zmatrix": lambda: self._safe_call(self.get_zmatrix_rep, decimal_places=1),
-            "local_env": lambda: self._safe_call(self.get_local_env_rep,
-                                                 local_env_kwargs=None),
+            "local_env": lambda: self._safe_call(self.get_local_env_rep, local_env_kwargs=None),
         }
 
         return {rep: all_reps[rep]() for rep in requested_reps if rep in all_reps}

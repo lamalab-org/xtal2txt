@@ -30,8 +30,8 @@ CIF_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab_rt.json")
 CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
 CRYSTAL_LLM_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab_rt.json")
 
-SMILES_VOCAB = os.path.join(THIS_DIR, "vocabs", "smiles_vocab.json") 
-SMILES_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "smiles_vocab_rt.json")   
+SMILES_VOCAB = os.path.join(THIS_DIR, "vocabs", "smiles_vocab.json")
+SMILES_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "smiles_vocab_rt.json")
 
 ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
 
@@ -450,7 +450,6 @@ class CrysllmTokenizer(Xtal2txtTokenizer):
         ]
 
 
-
 class SmilesTokenizer(Xtal2txtTokenizer):
     def __init__(
         self,
@@ -471,7 +470,6 @@ class SmilesTokenizer(Xtal2txtTokenizer):
             padding_length=padding_length,
             **kwargs,
         )
-
 
 
 class RobocrysTokenizer:
