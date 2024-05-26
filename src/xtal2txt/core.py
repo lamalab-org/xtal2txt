@@ -134,7 +134,7 @@ class TextRep:
                     symmetrized_structure,
                     symprec=0.1,
                     significant_figures=decimal_places,
-                ).ciffile
+                ).cif_file
             )
             cif = "\n".join(cif_string.split("\n")[1:])
             return self.round_numbers_in_string(cif, decimal_places)
