@@ -39,6 +39,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          apt-get install -y pkg-config
           mamba install -c conda-forge openbabel fftw -y
           pip install -e ".[dev, decoder]"
 
