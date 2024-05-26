@@ -39,7 +39,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          mamba install -c conda-forge openbabel fftw3 -y
+          mamba install -c conda-forge openbabel fftw -y
           pip install -e ".[dev]"
 
       - name: Test
