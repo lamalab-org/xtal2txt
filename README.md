@@ -1,8 +1,8 @@
-<!--
+
 <p align="center">
-  <img src="https://github.com/lamalab-org/xtal2txt/raw/main/docs/source/logo.png" height="150">
+  <img src="https://github.com/lamalab-org/xtal2txt/raw/main/docs/static/xtal2txt-logo.png" height="150">
 </p>
--->
+
 
 <h1 align="center">
   xtal2txt
