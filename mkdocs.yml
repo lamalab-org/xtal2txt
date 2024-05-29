@@ -15,8 +15,8 @@ site_dir: site
 
 theme:
   name: material
-  logo: static/cb_flask_white.png
-  favicon: static/cb_flask_white.png
+  logo: static/xtal2txt-logo.png
+  favicon: static/xtal2txt-logo.png
   features:
     - content.tabs.link
     - content.code.annotation
@@ -110,5 +110,5 @@ extra:
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
-  - Installation: installation.md
+  - Usage: usage.md
   - API Reference: api.md

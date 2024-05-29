@@ -1,0 +1,2 @@
+xtal2txt dynamically loads `slices`, a library to derive the SLICES representation. 
+`slices` is licensed under LGPL and imported in `core.py` as `invcryrep`.

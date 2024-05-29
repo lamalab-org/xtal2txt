@@ -105,8 +105,10 @@ class LocalEnvAnalyzer:
                 mg.add_edge(0, i)
 
             env = lse.coordination_environments[index]
-            co = all_ce.get_geometry_from_mp_symbol(env[0]["ce_symbol"])
-
+            try:
+                co = all_ce.get_geometry_from_mp_symbol(env[0]["ce_symbol"])
+            except KeyError:
+                co = "Unknown"
             moladapter = BabelMolAdaptor.from_molecule_graph(mg)
             smiles = moladapter.pybel_mol.write("can").strip()
             envs.append(
