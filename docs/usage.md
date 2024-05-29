@@ -145,7 +145,7 @@ tokenizer = SliceTokenizer(
 
 All `Xtal2txtTokenizer` instances inherit from {ref}`PreTrainedTokenizer <regression_transformer>` and accept arguments compatible with the HuggingFace tokenizer.
 
-## Tokenizers with special Number tokenization
+## Tokenizers with special number tokenization
 
 The `special_num_token` argument (by default `False`) can be set to true to tokenize numbers in a special way as designed and implemented by {ref}`RegressionTransformer <regression_transformer>`.
 
