@@ -73,44 +73,43 @@ transformations = [
 text_rep = TextRep.from_input(structure)
 ```
 
-The following transformations are available for generating text representations:
+The following transformations are available for transforming structures:
 
-1. **Randomly Permute Structure**
+#### Randomly Permute Structure
 
-   - Function: {func}`permute_structure <TransformationCallback.permute_structure>`
-   - Description: Randomly permutes the order of atoms in a structure.
-   - Parameters:
-     \- `seed` (int): The seed value for randomization. Default is 42.
+- Function: {func}`permute_structure <TransformationCallback.permute_structure>`
+- Description: Randomly permutes the order of atoms in a structure.
+- Parameters:
+  \- `seed` (int): The seed value for randomization. Default is 42.
 
-2. **Randomly Translate Single Atom**
+#### Randomly Translate Single Atom
+- Function: {func}`translate_single_atom <TransformationCallback.translate_single_atom>`
+- Description: Randomly translates one or more atoms in a structure.
+- Parameters:
+  \- `max_indices` (int): The maximum number of atoms to translate. Default is 1.
+  \- `vector` (List\[float\]): The translation vector. Default is \[0.25, 0.25, 0.25\].
+  \- `seed` (int): The seed for random number generation. Default is 42.
 
-   - Function: {func}`translate_single_atom <TransformationCallback.translate_single_atom>`
-   - Description: Randomly translates one or more atoms in a structure.
-   - Parameters:
-     \- `max_indices` (int): The maximum number of atoms to translate. Default is 1.
-     \- `vector` (List\[float\]): The translation vector. Default is \[0.25, 0.25, 0.25\].
-     \- `seed` (int): The seed for random number generation. Default is 42.
+#### Randomly Perturb Structure
 
-3. **Randomly Perturb Structure**
+- Function: {func}`perturb_structure <TransformationCallback.perturb_structure>`
+- Description: Randomly perturbs atoms in a structure.
+- Parameters:
+ \- `max_distance` (float): The maximum perturbation distance. Default is 0.1.
+ \- `seed` (int): The seed for random number generation. Default is 42.
 
-   - Function: {func}`perturb_structure <TransformationCallback.perturb_structure>`
-   - Description: Randomly perturbs atoms in a structure.
-   - Parameters:
-     \- `max_distance` (float): The maximum perturbation distance. Default is 0.1.
-     \- `seed` (int): The seed for random number generation. Default is 42.
+#### Randomly Translate Structure
 
-4. **Randomly Translate Structure**
+- Function: {func}`translate_structure <TransformationCallback.translate_structure>`
+- Description: Randomly translates the atoms in a structure.
+- Parameters:
+ \- `vector` (List\[float\]): The translation vector. Default is \[0.1, 0.1, 0.1\].
+ \- `seed` (int): The seed for random number generation. Default is 42.
 
-   - Function: {func}`translate_structure <TransformationCallback.translate_structure>`
-   - Description: Randomly translates the atoms in a structure.
-   - Parameters:
-     \- `vector` (List\[float\]): The translation vector. Default is \[0.1, 0.1, 0.1\].
-     \- `seed` (int): The seed for random number generation. Default is 42.
-
-   :::{note}
-   This transformation supports additional keyword arguments for fine-tuning the translation.
-   xtal2txt leverage methods from pymatgen and support all the keyword arguments in `Structure.translate_sites` method.
-   :::
+ :::{note}
+ This transformation supports additional keyword arguments for fine-tuning the translation.
+ xtal2txt leverage methods from pymatgen and support all the keyword arguments in `Structure.translate_sites` method.
+ :::
 
 All transformations utilize a common seed value for reproducibility and accept additional parameters for customization.
 
