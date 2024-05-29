@@ -1,13 +1,7 @@
 # xtal2txt documentation
 
-## Table of Contents
+xtal2txt is a package to 
 
-```{toctree}
-:caption: Getting Started
-:maxdepth: 2
-:name: start
-
-installation
-usage
-```
-
+- convert crystal structures into text representations
+- tokenize text representations 
+- convert text representations into crystal structures
