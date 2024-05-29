@@ -75,36 +75,21 @@ text_rep = TextRep.from_input(structure)
 
 The following transformations are available for transforming structures:
 
-#### Randomly Permute Structure
+#### Randomly permute structure
 
-- Function: {func}`permute_structure <TransformationCallback.permute_structure>`
-- Description: Randomly permutes the order of atoms in a structure.
-- Parameters:
-  \- `seed` (int): The seed value for randomization. Default is 42.
+[`permute_structure`](api.md#xtal2txt.transforms.TransformationCallback.permute_structure) randomly permutes the order of atoms in a structure.
 
-#### Randomly Translate Single Atom
-- Function: {func}`translate_single_atom <TransformationCallback.translate_single_atom>`
-- Description: Randomly translates one or more atoms in a structure.
-- Parameters:
-  \- `max_indices` (int): The maximum number of atoms to translate. Default is 1.
-  \- `vector` (List\[float\]): The translation vector. Default is \[0.25, 0.25, 0.25\].
-  \- `seed` (int): The seed for random number generation. Default is 42.
+#### Randomly translate single atom
+[`translate_single_atom`](api.md#xtal2txt.transforms.TransformationCallback.translate_single_atom) randomly translates one or more atoms in a structure.
 
-#### Randomly Perturb Structure
 
-- Function: {func}`perturb_structure <TransformationCallback.perturb_structure>`
-- Description: Randomly perturbs atoms in a structure.
-- Parameters:
- \- `max_distance` (float): The maximum perturbation distance. Default is 0.1.
- \- `seed` (int): The seed for random number generation. Default is 42.
+#### Randomly perturb structure
 
-#### Randomly Translate Structure
+[`perturb_structure`](api.md#xtal2txt.transforms.TransformationCallback.perturb_structure) randomly perturbs atoms in a structure.
 
-- Function: {func}`translate_structure <TransformationCallback.translate_structure>`
-- Description: Randomly translates the atoms in a structure.
-- Parameters:
- \- `vector` (List\[float\]): The translation vector. Default is \[0.1, 0.1, 0.1\].
- \- `seed` (int): The seed for random number generation. Default is 42.
+#### Randomly translate structure
+
+[`translate_structure`](api.md#xtal2txt.transforms.TransformationCallback.translate_structure) randomly translates the atoms in a structure.
 
  :::{note}
  This transformation supports additional keyword arguments for fine-tuning the translation.
