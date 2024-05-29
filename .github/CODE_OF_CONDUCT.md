@@ -59,7 +59,7 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at https://arc.net/l/quote/skevwynh.
+reported to the community leaders responsible for enforcement at https://mailhide.io/e/o4LeOUlq.
 
 All complaints will be reviewed and investigated promptly and fairly.
 
