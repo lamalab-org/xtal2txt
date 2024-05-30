@@ -425,7 +425,10 @@ class TextRep:
         """
         Generate the Z-matrix representation of the crystal structure. 
         It provides a description of each atom in terms of its atomic number, 
-        bond length, bond angle, and dihedral angle, the so-called internal coordinates
+        bond length, bond angle, and dihedral angle, the so-called internal coordinates.
+
+        Disclaimer !! The Z-matrix is meant for molecules, current implementation convert atoms within unit cell to molecule. 
+        Hence the current implentation might overlook bonds acrosse unit cells. 
         """
         species = [s.element for s in self.structure.species]
         coords = [c for c in self.structure.cart_coords]
