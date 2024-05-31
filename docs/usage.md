@@ -63,13 +63,12 @@ The `TextRep` class supports various transformations that can be applied to the 
 
 ### Permute Structure 
 
-The permute_structure transformation randomly permutes the order of atoms in a structure. 
+The `permute_structure` transformation randomly permutes the order of atoms in a structure. 
 
 #### Example:
 ```python
 from xtal2txt.core import TextRep
 from pymatgen.core.structure import Structure
-
 
 structure_1 = Structure.from_file("N2_p1.cif", "cif")
 
@@ -85,7 +84,7 @@ print(text_rep.get_requested_text_reps(text_representations_requested))
 
 ### Translate Structure 
 
-The translate_structure transformation randomly translates all atoms in a structure by a specified vector. This can simulate small displacements in the structure.
+The `translate_structure` transformation randomly translates all atoms in a structure by a specified vector. This can simulate small displacements in the structure.
 
 ```python
 
@@ -95,12 +94,11 @@ text_rep = TextRep.from_input(structure_1, transformations)
 text_representations_requested = ["crystal_llm_rep"]
 print("Translated Crystal-text-LLM Representations:")
 print(text_rep.get_requested_text_reps(text_representations_requested))
-
 ```
 
 ### Augmentating data
 
-In principle we can generate valid text representations with random transformations with physically meaningful parameters. Dummy example is shown below
+In principle, we can generate valid text representations with random transformations with physically meaningful parameters. Dummy example is shown below
 
 ```python
 from xtal2txt.core import TextRep
