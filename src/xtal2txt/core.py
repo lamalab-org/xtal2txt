@@ -364,6 +364,23 @@ class TextRep:
         return " ".join(output)
 
     def updated_zmatrix_rep(self, zmatrix, decimal_places=1):
+        """
+        Replace the variables in the Z-matrix with their values and return the updated Z-matrix.
+        for eg: z-matrix from pymatgen 
+        'N\nN 1 B1\nN 1 B2 2 A2\nN 1 B3 2 A3 3 D3\n
+        B1=3.79
+        B2=6.54
+        ....
+        is replaced to
+        'N\nN 1 3.79\nN 1 6.54 2 90\nN 1 6.54 2 90 3 120\n'
+
+        Args:
+            Zmatrix (bool): zmatrix multi line string as implemented in pymatgen.
+            decimal_places (int): The number of decimal places to round to.
+
+        Returns:
+            str: The updated Z-matrix representation of the crystal structure.
+        """
         lines = zmatrix.split("\n")
         main_part = []
         variables_part = []
@@ -405,6 +422,14 @@ class TextRep:
         return "\n".join(replaced_lines)
 
     def get_zmatrix_rep(self, decimal_places=1):
+        """
+        Generate the Z-matrix representation of the crystal structure. 
+        It provides a description of each atom in terms of its atomic number, 
+        bond length, bond angle, and dihedral angle, the so-called internal coordinates.
+
+        Disclaimer: The Z-matrix is meant for molecules, current implementation converts atoms within unit cell to molecule. 
+        Hence the current implentation might overlook bonds acrosse unit cells. 
+        """
         species = [s.element for s in self.structure.species]
         coords = [c for c in self.structure.cart_coords]
         molecule_ = Molecule(
