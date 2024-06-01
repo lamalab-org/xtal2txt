@@ -430,7 +430,7 @@ class TextRep:
         Disclaimer: The Z-matrix is meant for molecules, current implementation converts atoms within unit cell to molecule. 
         Hence the current implentation might overlook bonds acrosse unit cells. 
         """
-        species = [s.element for s in self.structure.species]
+        species = [s.element if hasattr(s, 'element') else s for s in self.structure.species]
         coords = [c for c in self.structure.cart_coords]
         molecule_ = Molecule(
             species,
