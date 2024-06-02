@@ -107,10 +107,14 @@ class TextRep:
         pattern = r"\b\d+\.\d+\b"
         matches = re.findall(pattern, original_string)
         rounded_numbers = [round(float(match), decimal_places) for match in matches]
-        new_string = re.sub(pattern, lambda x: str(rounded_numbers.pop(0)), original_string)
+        new_string = re.sub(
+            pattern, lambda x: str(rounded_numbers.pop(0)), original_string
+        )
         return new_string
 
-    def get_cif_string(self, format: str = "symmetrized", decimal_places: int = 3) -> str:
+    def get_cif_string(
+        self, format: str = "symmetrized", decimal_places: int = 3
+    ) -> str:
         """
         Generate CIF as string in multi-line format.
 
@@ -156,7 +160,9 @@ class TextRep:
         Returns:
             List[str]: The lattice parameters.
         """
-        return [str(round(i, decimal_places)) for i in self.structure.lattice.parameters]
+        return [
+            str(round(i, decimal_places)) for i in self.structure.lattice.parameters
+        ]
 
     def get_coords(self, name: str = "cartesian", decimal_places: int = 3) -> List[str]:
         """
@@ -183,8 +189,8 @@ class TextRep:
             elements.extend(coord)
         return elements
 
-    def get_slice(self, primitive: bool = True) -> str:
-        """Returns SLICE representation of the crystal structure.
+    def get_slices(self, primitive: bool = True) -> str:
+        """Returns SLICES representation of the crystal structure.
         https://www.nature.com/articles/s41467-023-42870-7
 
         Args:
@@ -235,7 +241,7 @@ class TextRep:
         analyzer = LocalEnvAnalyzer(**local_env_kwargs)
         return analyzer.structure_to_local_env_string(self.structure)
 
-    def get_crystal_llm_rep(
+    def get_crystal_text_llm(
         self,
         permute_atoms: bool = False,
     ) -> str:
@@ -338,7 +344,9 @@ class TextRep:
 
         return output
 
-    def get_atoms_params_rep(self, lattice_params: bool = False, decimal_places: int = 1) -> str:
+    def get_atom_sequences_plusplus(
+        self, lattice_params: bool = False, decimal_places: int = 1
+    ) -> str:
         """
         Generating a string with the elements of composition inside the crystal lattice with the option to
         get the lattice parameters as angles (int) and lengths (float) in a string with a space
@@ -366,7 +374,7 @@ class TextRep:
     def updated_zmatrix_rep(self, zmatrix, decimal_places=1):
         """
         Replace the variables in the Z-matrix with their values and return the updated Z-matrix.
-        for eg: z-matrix from pymatgen 
+        for eg: z-matrix from pymatgen
         'N\nN 1 B1\nN 1 B2 2 A2\nN 1 B3 2 A3 3 D3\n
         B1=3.79
         B2=6.54
@@ -423,14 +431,16 @@ class TextRep:
 
     def get_zmatrix_rep(self, decimal_places=1):
         """
-        Generate the Z-matrix representation of the crystal structure. 
-        It provides a description of each atom in terms of its atomic number, 
+        Generate the Z-matrix representation of the crystal structure.
+        It provides a description of each atom in terms of its atomic number,
         bond length, bond angle, and dihedral angle, the so-called internal coordinates.
 
-        Disclaimer: The Z-matrix is meant for molecules, current implementation converts atoms within unit cell to molecule. 
-        Hence the current implentation might overlook bonds acrosse unit cells. 
+        Disclaimer: The Z-matrix is meant for molecules, current implementation converts atoms within unit cell to molecule.
+        Hence the current implentation might overlook bonds acrosse unit cells.
         """
-        species = [s.element if hasattr(s, 'element') else s for s in self.structure.species]
+        species = [
+            s.element if hasattr(s, "element") else s for s in self.structure.species
+        ]
         coords = [c for c in self.structure.cart_coords]
         molecule_ = Molecule(
             species,
@@ -452,18 +462,18 @@ class TextRep:
                 self.get_cif_string, format="symmetrized", decimal_places=decimal_places
             ),
             "cif_bonding": None,
-            "slice": self._safe_call(self.get_slice),
+            "slices": self._safe_call(self.get_slices),
             "composition": self._safe_call(self.get_composition),
-            "crystal_llm_rep": self._safe_call(self.get_crystal_llm_rep),
+            "crystal_text_llm": self._safe_call(self.get_crystal_text_llm),
             "robocrys_rep": self._safe_call(self.get_robocrys_rep),
             "wycoff_rep": None,
-            "atoms": self._safe_call(
-                self.get_atoms_params_rep,
+            "atom_sequences": self._safe_call(
+                self.get_atom_sequences_plusplus,
                 lattice_params=False,
                 decimal_places=decimal_places,
             ),
-            "atoms_params": self._safe_call(
-                self.get_atoms_params_rep,
+            "atom_sequences_plusplus": self._safe_call(
+                self.get_atom_sequences_plusplus,
                 lattice_params=True,
                 decimal_places=decimal_places,
             ),
@@ -471,7 +481,9 @@ class TextRep:
             "local_env": self._safe_call(self.get_local_env_rep, local_env_kwargs=None),
         }
 
-    def get_requested_text_reps(self, requested_reps: List[str], decimal_places: int = 2):
+    def get_requested_text_reps(
+        self, requested_reps: List[str], decimal_places: int = 2
+    ):
         """
         Returns the requested Text representations of the crystal structure in a dictionary.
 
@@ -483,31 +495,46 @@ class TextRep:
             dict: A dictionary containing the requested text representations of the crystal structure.
         """
 
-        all_reps = {
-            "cif_p1": lambda: self._safe_call(
+        if requested_reps == "cif_p1":
+            return self._safe_call(
                 self.get_cif_string, format="p1", decimal_places=decimal_places
-            ),
-            "cif_symmetrized": lambda: self._safe_call(
-                self.get_cif_string, format="symmetrized", decimal_places=decimal_places
-            ),
-            "cif_bonding": lambda: None,
-            "slice": lambda: self._safe_call(self.get_slice),
-            "composition": lambda: self._safe_call(self.get_composition),
-            "crystal_llm_rep": lambda: self._safe_call(self.get_crystal_llm_rep),
-            "robocrys_rep": lambda: self._safe_call(self.get_robocrys_rep),
-            "wycoff_rep": lambda: None,
-            "atoms": lambda: self._safe_call(
-                self.get_atoms_params_rep,
+            )
+
+        elif requested_reps == "cif_symmetrized":
+            return self._safe_call(
+                self.get_cif_string,
+                format="symmetrized",
+                decimal_places=decimal_places,
+            )
+
+        elif requested_reps == "slices":
+            return self._safe_call(self.get_slices)
+
+        elif requested_reps == "composition":
+            return self._safe_call(self.get_composition)
+
+        elif requested_reps == "crystal_text_llm":
+            return self._safe_call(self.get_crystal_text_llm)
+
+        elif requested_reps == "robocrys_rep":
+            return self._safe_call(self.get_robocrys_rep)
+
+        elif requested_reps == "atom_sequences":
+            return self._safe_call(
+                self.get_atom_sequences_plusplus,
                 lattice_params=False,
                 decimal_places=decimal_places,
-            ),
-            "atoms_params": lambda: self._safe_call(
-                self.get_atoms_params_rep,
+            )
+
+        elif requested_reps == "atom_sequences_plusplus":
+            return self._safe_call(
+                self.get_atom_sequences_plusplus,
                 lattice_params=True,
                 decimal_places=decimal_places,
-            ),
-            "zmatrix": lambda: self._safe_call(self.get_zmatrix_rep, decimal_places=1),
-            "local_env": lambda: self._safe_call(self.get_local_env_rep, local_env_kwargs=None),
-        }
+            )
 
-        return {rep: all_reps[rep]() for rep in requested_reps if rep in all_reps}
+        elif requested_reps == "zmatrix":
+            return self._safe_call(self.get_zmatrix_rep)
+
+        elif requested_reps == "local_env":
+            return self._safe_call(self.get_local_env_rep, local_env_kwargs=None)
