@@ -84,7 +84,7 @@ def test_encode_decode(
         )
         assert input_string == decoded_tokens
 
-        input_string = struct.get_slice()
+        input_string = struct.get_slices()
         token_ids = slice_rt_tokenizer.encode(input_string)
         decoded_tokens = slice_rt_tokenizer.decode(token_ids, skip_special_tokens=True)
         try:
