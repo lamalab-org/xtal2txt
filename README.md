@@ -18,9 +18,6 @@
     <a href="https://pypi.org/project/xtal2txt">
         <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/xtal2txt" />
     </a>
-    <a href="https://github.com/lamalab-org/xtal2txt/blob/main/LICENSE">
-        <img alt="PyPI - License" src="https://img.shields.io/pypi/l/xtal2txt" />
-    </a>
 </p>
 
 Package to define, convert, encode and decode crystal structures into text representations
@@ -29,14 +26,14 @@ Package to define, convert, encode and decode crystal structures into text repre
 
 ## 🚀 Installation
 
-<!-- Uncomment this section after your first ``tox -e finish``
+
 The most recent release can be installed from
 [PyPI](https://pypi.org/project/xtal2txt/) with:
 
 ```shell
 $ pip install xtal2txt
 ```
--->
+
 
 The most recent code and data can be installed directly from GitHub with:
 
