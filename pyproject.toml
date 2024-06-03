@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xtal2txt"
-version = "0.0.1-dev"
+version = "0.0.1"
 description = "Package to encode and decode crystal structures into text representations"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -79,7 +79,7 @@ exclude_lines = [
 
 
 [tool.bumpversion]
-current_version = "0.0.1-dev"
+current_version = "0.0.1"
 commit = true
 commit_args = "--no-verify --allow-empty"
 tag = true
