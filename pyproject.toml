@@ -40,7 +40,7 @@ Homepage = "https://github.com/lamalab-org/xtal2txt"
 Issues = "https://github.com/lamalab-org/xtal2txt/issues"
 
 [project.optional-dependencies]
-dev = ['pytest']
+dev = ['pytest', 'bump2version']
 docs = [
     "mkdocs",
     "mkdocs-autorefs",
