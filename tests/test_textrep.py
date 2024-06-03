@@ -51,14 +51,14 @@ def test_get_lattice_parameters() -> None:
     assert N2.get_lattice_parameters() == expected_output
 
 
-def test_get_slice() -> None:
+def test_get_slices() -> None:
     expected_output = "N N N N 0 1 - o o 0 1 - + o 0 1 o o o 0 1 o + o 0 2 o + o 0 2 o + + 0 2 + + o 0 2 + + + 0 3 o o - 0 3 o o o 0 3 o + - 0 3 o + o 1 3 o o - 1 3 o o o 1 3 + o - 1 3 + o o 1 2 + o o 1 2 + o + 1 2 + + o 1 2 + + + 2 3 - - - 2 3 - o - 2 3 o - - 2 3 o o - "
-    assert N2.get_slice() == expected_output
+    assert N2.get_slices() == expected_output
 
 
 def test_get_crystal_llm_rep() -> None:
     expected_output = "5.6 5.6 5.6\n90 90 90\nN0+\n0.48 0.98 0.52\nN0+\n0.98 0.52 0.48\nN0+\n0.02 0.02 0.02\nN0+\n0.52 0.48 0.98"
-    assert N2.get_crystal_llm_rep() == expected_output
+    assert N2.get_crystal_text_llm() == expected_output
 
 
 def test_robocrys_for_cif_format() -> None:

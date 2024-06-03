@@ -65,10 +65,10 @@ text_rep = TextRep.from_input(structure)
 
 requested_reps = [
         "cif_p1",
-        "slice",
-        "atoms",
-        "atoms_params",
-        "crystal_llm_rep",
+        "slices",
+        "atom_sequences",
+        "atom_sequences_plusplus",
+        "crystal_text_llm",
         "zmatrix"
 ]
 

@@ -77,14 +77,14 @@ def test_encode_decode(
         decoded_tokens = cif_rt_tokenizer.decode(token_ids, skip_special_tokens=True)
         assert input_string == decoded_tokens
 
-        input_string = struct.get_crystal_llm_rep()
+        input_string = struct.get_crystal_text_llm()
         token_ids = crystal_llm_rt_tokenizer.encode(input_string)
         decoded_tokens = crystal_llm_rt_tokenizer.decode(
             token_ids, skip_special_tokens=True
         )
         assert input_string == decoded_tokens
 
-        input_string = struct.get_slice()
+        input_string = struct.get_slices()
         token_ids = slice_rt_tokenizer.encode(input_string)
         decoded_tokens = slice_rt_tokenizer.decode(token_ids, skip_special_tokens=True)
         try:
