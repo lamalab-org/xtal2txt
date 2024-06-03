@@ -81,7 +81,7 @@ exclude_lines = [
 [tool.bumpversion]
 current_version = "0.0.1-dev"
 commit = true
-commit_args = "--no-verify"
+commit_args = "--no-verify --allow-empty"
 tag = true
 tag_name = "{new_version}"
 allow_dirty = true
