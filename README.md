@@ -60,7 +60,7 @@ from pymatgen.core import Structure
 from_file = "InCuS2_p1.cif"
 structure = Structure.from_file(from_file, "cif")
 
-Initialize TextRep Class
+# Initialize TextRep Class
 text_rep = TextRep.from_input(structure)
 
 requested_reps = [
@@ -154,6 +154,7 @@ Contributions, whether filing an issue, making a pull request, or forking, are a
 ### ⚖️ License
 
 The code in this package is licensed under the MIT License.
+See the [Notice](NOTICE.txt) for imported LGPL code.
 
 ### 💰 Funding
 
