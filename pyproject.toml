@@ -34,7 +34,14 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 keywords = ["llm", "materials", "chemistry"]
-dependencies = ["transformers", "slices", "robocrys", "matminer", "keras<3"]
+dependencies = [
+    "transformers",
+    "slices",
+    "robocrys",
+    "matminer",
+    "keras<3",
+    "pystow",
+]
 [project.urls]
 Homepage = "https://github.com/lamalab-org/xtal2txt"
 Issues = "https://github.com/lamalab-org/xtal2txt/issues"
