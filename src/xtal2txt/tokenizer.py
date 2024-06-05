@@ -18,42 +18,42 @@ from xtal2txt.utils import xtal2txt_storage
 
 
 SLICE_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/slice_vocab.txt?download=1"
+    url="https://zenodo.org/records/11484062/files/slice_vocab.txt?download=1"
 )
 SLICE_RT_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
+    url="https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
 )
 
 COMPOSITION_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/composition_vocab.txt?download=1"
+    url="https://zenodo.org/records/11484062/files/composition_vocab.txt?download=1"
 )
 COMPOSITION_RT_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/composition_vocab_rt.txt?download=1"
+    url="https://zenodo.org/records/11484062/files/composition_vocab_rt.txt?download=1"
 )
 
 CIF_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/cif_vocab.json?download=1"
+    url="https://zenodo.org/records/11484062/files/cif_vocab.json?download=1"
 )
 CIF_RT_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/cif_vocab_rt.json?download=1"
+    url="https://zenodo.org/records/11484062/files/cif_vocab_rt.json?download=1"
 )
 
 CRYSTAL_LLM_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/crystal_llm_vocab.json?download=1"
+    url="https://zenodo.org/records/11484062/files/crystal_llm_vocab.json?download=1"
 )
 CRYSTAL_LLM_RT_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
+    url="https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
 )
 
 SMILES_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/smiles_vocab.json?download=1"
+    url="https://zenodo.org/records/11484062/files/smiles_vocab.json?download=1"
 )
 SMILES_RT_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
+    url="https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
 )
 
 ROBOCRYS_VOCAB = xtal2txt_storage.ensure(
-    "https://zenodo.org/records/11484062/files/robocrys_vocab.json?download=1"
+    url="https://zenodo.org/records/11484062/files/robocrys_vocab.json?download=1"
 )
 
 
