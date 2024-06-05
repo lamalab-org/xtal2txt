@@ -57,7 +57,7 @@ CRYSTAL_LLM_VOCAB = str(
 )
 CRYSTAL_LLM_RT_VOCAB = str(
     xtal2txt_storage.ensure(
-        url="https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
+        url="https://zenodo.org/records/11484062/files/crystal_llm_vocab_rt.json?download=1"
     )
 )
 
@@ -68,7 +68,7 @@ SMILES_VOCAB = str(
 )
 SMILES_RT_VOCAB = str(
     xtal2txt_storage.ensure(
-        url="https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
+        url="https://zenodo.org/records/11484062/files/smiles_vocab_rt.json?download=1"
     )
 )
 
