@@ -14,26 +14,69 @@ from xtal2txt.analysis import (
 )
 
 from typing import List
+from xtal2txt.utils import xtal2txt_storage
 
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+SLICE_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/slice_vocab.txt?download=1"
+    )
+)
+SLICE_RT_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/slice_vocab_rt.txt?download=1"
+    )
+)
 
-SLICE_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab.txt")
-SLICE_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "slice_vocab_rt.txt")
+COMPOSITION_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/composition_vocab.txt?download=1"
+    )
+)
+COMPOSITION_RT_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/composition_vocab_rt.txt?download=1"
+    )
+)
 
-COMPOSITION_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab.txt")
-COMPOSITION_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "composition_vocab_rt.txt")
+CIF_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/cif_vocab.json?download=1"
+    )
+)
+CIF_RT_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/cif_vocab_rt.json?download=1"
+    )
+)
 
-CIF_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab.json")
-CIF_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "cif_vocab_rt.json")
+CRYSTAL_LLM_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/crystal_llm_vocab.json?download=1"
+    )
+)
+CRYSTAL_LLM_RT_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/crystal_llm_vocab_rt.json?download=1"
+    )
+)
 
-CRYSTAL_LLM_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab.json")
-CRYSTAL_LLM_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "crystal_llm_vocab_rt.json")
+SMILES_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/smiles_vocab.json?download=1"
+    )
+)
+SMILES_RT_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/smiles_vocab_rt.json?download=1"
+    )
+)
 
-SMILES_VOCAB = os.path.join(THIS_DIR, "vocabs", "smiles_vocab.json")
-SMILES_RT_VOCAB = os.path.join(THIS_DIR, "vocabs", "smiles_vocab_rt.json")
-
-ROBOCRYS_VOCAB = os.path.join(THIS_DIR, "vocabs", "robocrys_vocab.json")
+ROBOCRYS_VOCAB = str(
+    xtal2txt_storage.ensure(
+        url="https://zenodo.org/records/11484062/files/robocrys_vocab.json?download=1"
+    )
+)
 
 
 class NumTokenizer:
@@ -203,9 +246,11 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         if self.special_num_tokens:
             return "".join(
                 [
-                    token
-                    if not (token.startswith("_") and token.endswith("_"))
-                    else token.split("_")[1]
+                    (
+                        token
+                        if not (token.startswith("_") and token.endswith("_"))
+                        else token.split("_")[1]
+                    )
                     for token in tokens
                 ]
             )
@@ -272,9 +317,11 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
 
         vocab_file = os.path.join(
             save_directory,
-            f"{index + 1}-{filename_prefix}.json"
-            if filename_prefix
-            else f"{index + 1}.json",
+            (
+                f"{index + 1}-{filename_prefix}.json"
+                if filename_prefix
+                else f"{index + 1}.json"
+            ),
         )
 
         with open(vocab_file, "w", encoding="utf-8") as f:
@@ -335,9 +382,11 @@ class SliceTokenizer(Xtal2txtTokenizer):
         if self.special_num_tokens:
             return " ".join(
                 [
-                    token
-                    if not (token.startswith("_") and token.endswith("_"))
-                    else token.split("_")[1]
+                    (
+                        token
+                        if not (token.startswith("_") and token.endswith("_"))
+                        else token.split("_")[1]
+                    )
                     for token in tokens
                 ]
             )
@@ -345,7 +394,8 @@ class SliceTokenizer(Xtal2txtTokenizer):
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
-        token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
+        token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token.
+        """
         analysis_masks = ANALYSIS_MASK_TOKENS
         token_type = SLICE_ANALYSIS_DICT
         return [
@@ -377,7 +427,8 @@ class CompositionTokenizer(Xtal2txtTokenizer):
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
-        token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
+        token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token.
+        """
         analysis_masks = ANALYSIS_MASK_TOKENS
         token_type = COMPOSITION_ANALYSIS_DICT
         return [
@@ -409,7 +460,8 @@ class CifTokenizer(Xtal2txtTokenizer):
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
-        token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
+        token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token.
+        """
         analysis_masks = ANALYSIS_MASK_TOKENS
         token_type = CIF_ANALYSIS_DICT
         return [
@@ -441,7 +493,8 @@ class CrysllmTokenizer(Xtal2txtTokenizer):
 
     def token_analysis(self, list_of_tokens):
         """Takes tokens after tokenize and returns a list with replacing the tokens with their MASK token. The
-        token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token."""
+        token type is determined from the dict declared globally, and the token is replaced with the corresponding MASK token.
+        """
         analysis_masks = ANALYSIS_MASK_TOKENS
         token_type = CRYSTAL_LLM_ANALYSIS_DICT
         return [
