@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xtal2txt"
-version = "0.0.1"
+version = "0.1.0"
 description = "Package to encode and decode crystal structures into text representations"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -102,3 +102,8 @@ message = "Version updated from {current_version} to {new_version}"
 
 [tool.bumpversion.parts.dev]
 values = ["release", "post", "dev"]
+
+[tool.bumpversion.files]
+filename = "pyproject.toml"
+search = "version = \"{current_version}\""
+replace = "version = \"{new_version}\""
