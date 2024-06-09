@@ -20,7 +20,8 @@
     </a>
 </p>
 
-Package to define, convert, encode and decode crystal structures into text representations
+Package to define, convert, encode and decode crystal structures into text representations.
+`xtal2txt` is an important part of our [MatText](https://github.com/lamalab-org/MatText) framework.
 
 ## 💪 Getting Started
 
