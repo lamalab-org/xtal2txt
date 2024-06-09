@@ -86,7 +86,7 @@ exclude_lines = [
 
 
 [tool.bumpversion]
-current_version = "0.0.1"
+current_version = "0.1.0"
 commit = true
 commit_args = "--no-verify --allow-empty"
 tag = true
