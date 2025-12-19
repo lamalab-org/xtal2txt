@@ -36,7 +36,7 @@ classifiers = [
 keywords = ["llm", "materials", "chemistry"]
 dependencies = [
     "transformers",
-    "slices<2.0.0",
+    "slices==1.4.12",
     "robocrys",
     "matminer",
     "keras<3",
