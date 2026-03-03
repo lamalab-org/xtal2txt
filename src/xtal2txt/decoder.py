@@ -61,7 +61,9 @@ class DecodeTextRep:
             cell = pyLattice.from_para(
                 float(a), float(b), float(c), float(alpha), float(beta), float(gamma)
             )
-            xtal_struc.from_random(dimensions, spg, atoms, composition, sites=sites, lattice=cell)
+            xtal_struc.from_random(
+                dimensions, spg, atoms, composition, sites=sites, lattice=cell
+            )
         else:
             xtal_struc.from_random(dimensions, spg, atoms, composition, sites=sites)
 
@@ -212,7 +214,9 @@ class MatchRep:
         original_struct = self.structure
 
         # output_struct = self.wyckoff_decoder(input, lattice_params)
-        output_struct = DecodeTextRep(self.text).wyckoff_decoder(self.text, lattice_params=True)
+        output_struct = DecodeTextRep(self.text).wyckoff_decoder(
+            self.text, lattice_params=True
+        )
 
         return StructureMatcher(
             ltol,

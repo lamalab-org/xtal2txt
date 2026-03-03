@@ -7,12 +7,12 @@ Below is an example of its usage:
 from xtal2txt.core import TextRep
 from pymatgen.core import Structure
 
-
 # Load structure from a CIF file
 from_file = "InCuS2_p1.cif"
 structure = Structure.from_file(from_file, "cif")
 
-Initialize TextRep Class
+
+# Initialize TextRep Class
 text_rep = TextRep.from_input(structure)
 ```
 
@@ -31,7 +31,7 @@ requested_reps = [
     "slices",
     "atom_sequences_plusplus",
     "crystal_text_llm",
-    "zmatrix"
+    "zmatrix",
 ]
 
 # Get the requested text representations
@@ -61,9 +61,9 @@ The `TextRep` class supports various transformations that can be applied to the 
 
 
 
-### Permute Structure 
+### Permute Structure
 
-The `permute_structure` transformation randomly permutes the order of atoms in a structure. 
+The `permute_structure` transformation randomly permutes the order of atoms in a structure.
 
 #### Example:
 ```python
@@ -82,12 +82,11 @@ print("Permuted Text Representations:")
 print(text_rep.get_requested_text_reps(text_representations_requested))
 ```
 
-### Translate Structure 
+### Translate Structure
 
 The `translate_structure` transformation randomly translates all atoms in a structure by a specified vector. This can simulate small displacements in the structure.
 
 ```python
-
 transformations = [("translate_structure", {"seed": 42, "vector": [0.1, 0.1, 0.1]})]
 
 text_rep = TextRep.from_input(structure_1, transformations)
@@ -109,13 +108,12 @@ for vector in translation_vectors:
     transformations = [
         ("permute_structure", {"seed": 42}),
         ("perturb_structure", {"seed": 42, "max_distance": 0.1}),
-        ("translate_structure", {"seed": 42, "vector": vector.tolist()})
+        ("translate_structure", {"seed": 42, "vector": vector.tolist()}),
     ]
     text_rep = TextRep.from_input(structure_2, transformations)
     text_representations_requested = ["crystal_llm_rep"]
     print("Translated Text Representations:")
     print(text_rep.get_requested_text_reps(text_representations_requested))
-
 ```
 
 ### output
@@ -167,12 +165,9 @@ For example
 from xtal2txt.tokenizer import SliceTokenizer
 
 tokenizer = SliceTokenizer(
-                model_max_length=512,
-                truncation=True,
-                padding="max_length",
-                max_length=512
-            )
-print(tokenizer.cls_token) # returns [CLS]
+    model_max_length=512, truncation=True, padding="max_length", max_length=512
+)
+print(tokenizer.cls_token)  # returns [CLS]
 ```
 
 You can access the `\[CLS\]` token using the `cls_token` attribute of the tokenizer. During decoding, you can utilize the `skip_special_tokens` parameter to skip these special tokens.
@@ -191,12 +186,12 @@ Initialization without `\[CLS\]` and `\[SEP\]` Tokens:
 
 ```python
 tokenizer = SliceTokenizer(
-                model_max_length=512,
-                special_tokens={},
-                truncation=True,
-                padding="max_length",
-                max_length=512
-            )
+    model_max_length=512,
+    special_tokens={},
+    truncation=True,
+    padding="max_length",
+    max_length=512,
+)
 ```
 
 All `Xtal2txtTokenizer` instances inherit from {ref}`PreTrainedTokenizer <regression_transformer>` and accept arguments compatible with the HuggingFace tokenizer.
@@ -207,11 +202,11 @@ The `special_num_token` argument (by default `False`) can be set to true to toke
 
 ```python
 tokenizer = SliceTokenizer(
-                special_num_token=True,
-                model_max_length=512,
-                special_tokens={},
-                truncation=True,
-                padding="max_length",
-                max_length=512
-            )
+    special_num_token=True,
+    model_max_length=512,
+    special_tokens={},
+    truncation=True,
+    padding="max_length",
+    max_length=512,
+)
 ```

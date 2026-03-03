@@ -1,25 +1,25 @@
-# API Documentation 
+# API Documentation
 
 
 ## Text representation
 
-### Core class 
+### Core class
 
-::: xtal2txt.core 
+::: xtal2txt.core
     heading_level: 3
 
 
-### Decoding 
+### Decoding
 
-::: xtal2txt.decoder 
+::: xtal2txt.decoder
     heading_level: 3
 
 ## Transformations
 
-::: xtal2txt.transforms 
+::: xtal2txt.transforms
     heading_level: 3
 
-## Tokenizer 
+## Tokenizer
 
-::: xtal2txt.tokenizer 
+::: xtal2txt.tokenizer
     heading_level: 3

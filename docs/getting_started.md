@@ -20,5 +20,3 @@ $ git clone git+https://github.com/lamalab-org/xtal2txt.git
 $ cd xtal2txt
 $ pip install -e .
 ```
-
-
