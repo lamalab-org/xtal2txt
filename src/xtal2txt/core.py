@@ -1,10 +1,11 @@
+import logging
 import random
 import re
 from collections import Counter
+from enum import Enum
 from pathlib import Path
-from typing import List, Union, Tuple, Optional
+from typing import Union, Callable, Any
 
-from invcryrep.invcryrep import InvCryRep
 from pymatgen.core import Structure
 from pymatgen.core.structure import Molecule
 from pymatgen.io.cif import CifWriter
@@ -14,6 +15,23 @@ from robocrys import StructureCondenser, StructureDescriber
 from xtal2txt.transforms import TransformationCallback
 from xtal2txt.local_env import LocalEnvAnalyzer
 
+logger = logging.getLogger(__name__)
+
+
+class RepresentationType(Enum):
+    """Enumeration of available text representation types."""
+
+    CIF_P1 = "cif_p1"
+    CIF_SYMMETRIZED = "cif_symmetrized"
+    SLICES = "slices"
+    COMPOSITION = "composition"
+    CRYSTAL_TEXT_LLM = "crystal_text_llm"
+    ROBOCRYS = "robocrys_rep"
+    ATOM_SEQUENCES = "atom_sequences"
+    ATOM_SEQUENCES_PLUSPLUS = "atom_sequences_plusplus"
+    ZMATRIX = "zmatrix"
+    LOCAL_ENV = "local_env"
+
 
 class TextRep:
     """
@@ -21,41 +39,127 @@ class TextRep:
 
     Attributes:
         structure : pymatgen structure
+        transformations : list of transformations to apply
 
     Methods:
-        from_input : a classmethod
-        get_cif_string(n=3)
-        get_parameters(n=3)
-        get_coords(name, n=3)
-        get_cartesian(n=3)
-        get_fractional(n=3)
+        from_input : classmethod to create TextRep from various inputs
+        get_available_representations : get list of available representation types
+        get_cif_string : generate CIF string representation
+        get_lattice_parameters : get lattice parameters
+        get_coords : get atomic coordinates
+        get_slices : get SLICES representation
+        get_composition : get composition
+        get_local_env_rep : get local environment representation
+        get_crystal_text_llm : get Crystal-LLM representation
+        get_robocrys_rep : get Robocrystallographer representation
+        get_wyckoff_positions : get Wyckoff positions
+        get_wycryst : get Wycryst representation
+        get_atom_sequences_plusplus : get atom sequences
+        get_zmatrix_rep : get Z-matrix representation
+        get_all_text_reps : get all available representations
+        get_requested_text_reps : get specific representation(s)
     """
-
-    backend = InvCryRep()
-    condenser = StructureCondenser()
-    describer = StructureDescriber()
 
     def __init__(
         self,
         structure: Structure,
-        transformations: List[Tuple[str, dict]] = None,
+        transformations: list[tuple[str, dict]] = None,
+        enable_logging: bool = False,
     ) -> None:
+        """
+        Initialize TextRep instance.
+
+        Args:
+            structure: Pymatgen Structure object.
+            transformations: list of (transformation_name, params) tuples to apply.
+            enable_logging: Whether to log errors when representations fail.
+        """
         self.structure = structure
         self.transformations = transformations or []
+        self.enable_logging = enable_logging
+
+        # SLICES backend is lazy-loaded as versions keep changing
+        self._backend = None
+        self.condenser = StructureCondenser()
+        self.describer = StructureDescriber()
+
+        # Build registry of representation generators
+        self._build_registry()
+
         self.apply_transformations()
+
+    @property
+    def backend(self):
+        """Lazy-load SLICES backend as versions keep changing."""
+        if self._backend is None:
+            try:
+                from slices.core import SLICES
+
+                self._backend = SLICES()
+            except ImportError as e:
+                if self.enable_logging:
+                    logger.error(f"Failed to import SLICES backend: {e}")
+                raise ImportError(
+                    "SLICES backend is not available. Please install slices package with compatible dependencies."
+                ) from e
+        return self._backend
+
+    def _build_registry(self) -> None:
+        """Build registry mapping representation names to their generator functions."""
+        self._rep_registry: dict[str, Callable] = {
+            RepresentationType.CIF_P1.value: lambda dp: self.get_cif_string(
+                format="p1", decimal_places=dp
+            ),
+            RepresentationType.CIF_SYMMETRIZED.value: lambda dp: self.get_cif_string(
+                format="symmetrized", decimal_places=dp
+            ),
+            RepresentationType.SLICES.value: lambda dp: self.get_slices(),
+            RepresentationType.COMPOSITION.value: lambda dp: self.get_composition(),
+            RepresentationType.CRYSTAL_TEXT_LLM.value: lambda dp: (
+                self.get_crystal_text_llm()
+            ),
+            RepresentationType.ROBOCRYS.value: lambda dp: self.get_robocrys_rep(),
+            RepresentationType.ATOM_SEQUENCES.value: lambda dp: (
+                self.get_atom_sequences_plusplus(
+                    lattice_params=False, decimal_places=dp
+                )
+            ),
+            RepresentationType.ATOM_SEQUENCES_PLUSPLUS.value: lambda dp: (
+                self.get_atom_sequences_plusplus(lattice_params=True, decimal_places=dp)
+            ),
+            RepresentationType.ZMATRIX.value: lambda dp: self.get_zmatrix_rep(
+                decimal_places=dp
+            ),
+            RepresentationType.LOCAL_ENV.value: lambda dp: self.get_local_env_rep(
+                local_env_kwargs=None
+            ),
+        }
+
+    @classmethod
+    def get_available_representations(cls) -> list[str]:
+        """
+        Get list of available representation types.
+
+        Returns:
+            list[str]: list of representation type names.
+        """
+        return [rep.value for rep in RepresentationType]
 
     @classmethod
     def from_input(
         cls,
         input_data: Union[str, Path, Structure],
-        transformations: List[Tuple[str, dict]] = None,
+        transformations: list[tuple[str, dict]] = None,
+        enable_logging: bool = False,
     ) -> "TextRep":
         """
         Instantiate the TextRep class object with the pymatgen structure from a cif file, a cif string, or a pymatgen Structure object.
 
         Args:
-            input_data (Union[str,pymatgen.core.structure.Structure]): A cif file of a crystal structure, a cif string,
+            input_data: A cif file of a crystal structure, a cif string,
                 or a pymatgen Structure object.
+            transformations: list of transformations to apply.
+            enable_logging: Whether to log errors when representations fail.
 
         Returns:
             TextRep: A TextRep object.
@@ -75,7 +179,7 @@ class TextRep:
         else:
             structure = Structure.from_str(str(input_data), "cif")
 
-        return cls(structure, transformations)
+        return cls(structure, transformations, enable_logging)
 
     def apply_transformations(self) -> None:
         """
@@ -85,11 +189,25 @@ class TextRep:
             transform_func = getattr(TransformationCallback, transformation)
             self.structure = transform_func(self.structure, **params)
 
-    @staticmethod
-    def _safe_call(func, *args, **kwargs):
+    def _safe_call(self, func: Callable, *args, **kwargs) -> Any | None:
+        """
+        Safely call a function and return None if it fails.
+
+        Args:
+            func: Function to call.
+            *args: Positional arguments to pass to func.
+            **kwargs: Keyword arguments to pass to func.
+
+        Returns:
+            Result of func or None if exception occurs.
+        """
         try:
             return func(*args, **kwargs)
-        except Exception:
+        except Exception as e:
+            if self.enable_logging:
+                logger.warning(
+                    f"Failed to generate representation using {func.__name__}: {e}"
+                )
             return None
 
     @staticmethod
@@ -147,7 +265,7 @@ class TextRep:
             cif_string = "\n".join(self.structure.to(fmt="cif").split("\n")[1:])
             return self.round_numbers_in_string(cif_string, decimal_places)
 
-    def get_lattice_parameters(self, decimal_places: int = 3) -> List[str]:
+    def get_lattice_parameters(self, decimal_places: int = 3) -> list[str]:
         """
         Return lattice parameters of unit cells in a crystal lattice:
         the lengths of the cell edges (a, b, and c) in angstrom and the angles between them (alpha, beta, and gamma) in degrees.
@@ -158,13 +276,13 @@ class TextRep:
             decimal_places (int): The number of decimal places to round to.
 
         Returns:
-            List[str]: The lattice parameters.
+            list[str]: The lattice parameters.
         """
         return [
             str(round(i, decimal_places)) for i in self.structure.lattice.parameters
         ]
 
-    def get_coords(self, name: str = "cartesian", decimal_places: int = 3) -> List[str]:
+    def get_coords(self, name: str = "cartesian", decimal_places: int = 3) -> list[str]:
         """
         Return list of atoms in unit cell for with their positions in Cartesian or fractional coordinates as per choice.
 
@@ -173,7 +291,7 @@ class TextRep:
             decimal_places (int): The number of decimal places to round to.
 
         Returns:
-            List[str]: The list of atoms with their positions.
+            list[str]: The list of atoms with their positions.
         """
         elements = []
         for site in self.structure.sites:
@@ -221,7 +339,7 @@ class TextRep:
             composition = composition_string.replace(" ", "")
         return composition
 
-    def get_local_env_rep(self, local_env_kwargs: Optional[dict] = None) -> str:
+    def get_local_env_rep(self, local_env_kwargs: dict | None = None) -> str:
         """
         Get the local environment representation of the crystal structure.
 
@@ -449,92 +567,69 @@ class TextRep:
         zmatrix = molecule_.get_zmatrix()
         return self.updated_zmatrix_rep(zmatrix, decimal_places)
 
-    def get_all_text_reps(self, decimal_places: int = 2):
+    def get_all_text_reps(
+        self, decimal_places: int = 2, include_none: bool = False
+    ) -> dict[str, str | None]:
         """
         Returns all the Text representations of the crystal structure in a dictionary.
-        """
-
-        return {
-            "cif_p1": self._safe_call(
-                self.get_cif_string, format="p1", decimal_places=decimal_places
-            ),
-            "cif_symmetrized": self._safe_call(
-                self.get_cif_string, format="symmetrized", decimal_places=decimal_places
-            ),
-            "cif_bonding": None,
-            "slices": self._safe_call(self.get_slices),
-            "composition": self._safe_call(self.get_composition),
-            "crystal_text_llm": self._safe_call(self.get_crystal_text_llm),
-            "robocrys_rep": self._safe_call(self.get_robocrys_rep),
-            "wycoff_rep": None,
-            "atom_sequences": self._safe_call(
-                self.get_atom_sequences_plusplus,
-                lattice_params=False,
-                decimal_places=decimal_places,
-            ),
-            "atom_sequences_plusplus": self._safe_call(
-                self.get_atom_sequences_plusplus,
-                lattice_params=True,
-                decimal_places=decimal_places,
-            ),
-            "zmatrix": self._safe_call(self.get_zmatrix_rep),
-            "local_env": self._safe_call(self.get_local_env_rep, local_env_kwargs=None),
-        }
-
-    def get_requested_text_reps(
-        self, requested_reps: List[str], decimal_places: int = 2
-    ):
-        """
-        Returns the requested Text representations of the crystal structure in a dictionary.
 
         Args:
-            requested_reps (List[str]): The list of representations to return.
-            decimal_places (int): The number of decimal places to round to.
+            decimal_places: Number of decimal places to round to.
+            include_none: Whether to include None values for unimplemented representations.
 
         Returns:
-            dict: A dictionary containing the requested text representations of the crystal structure.
+            dictionary mapping representation names to their values.
         """
+        results = {}
 
-        if requested_reps == "cif_p1":
-            return self._safe_call(
-                self.get_cif_string, format="p1", decimal_places=decimal_places
-            )
+        # Generate all registered representations
+        for rep_name, rep_func in self._rep_registry.items():
+            results[rep_name] = self._safe_call(rep_func, decimal_places)
 
-        elif requested_reps == "cif_symmetrized":
-            return self._safe_call(
-                self.get_cif_string,
-                format="symmetrized",
-                decimal_places=decimal_places,
-            )
+        # Add deprecated/unimplemented representations if requested
+        if include_none:
+            results["cif_bonding"] = None
+            results["wycoff_rep"] = None
 
-        elif requested_reps == "slices":
-            return self._safe_call(self.get_slices)
+        return results
 
-        elif requested_reps == "composition":
-            return self._safe_call(self.get_composition)
+    def get_requested_text_reps(
+        self, requested_reps: Union[str, list[str]], decimal_places: int = 2
+    ) -> Union[str | None, dict[str, str | None]]:
+        """
+        Returns the requested Text representation(s) of the crystal structure.
 
-        elif requested_reps == "crystal_text_llm":
-            return self._safe_call(self.get_crystal_text_llm)
+        Args:
+            requested_reps: Single representation name or list of representation names.
+            decimal_places: The number of decimal places to round to.
 
-        elif requested_reps == "robocrys_rep":
-            return self._safe_call(self.get_robocrys_rep)
+        Returns:
+            If requested_reps is a string: the representation value (or None if failed).
+            If requested_reps is a list: dictionary mapping names to values.
 
-        elif requested_reps == "atom_sequences":
-            return self._safe_call(
-                self.get_atom_sequences_plusplus,
-                lattice_params=False,
-                decimal_places=decimal_places,
-            )
+        Raises:
+            ValueError: If requested representation is not available.
+        """
+        # Handle single string request (backward compatibility)
+        if isinstance(requested_reps, str):
+            if requested_reps not in self._rep_registry:
+                available = ", ".join(self.get_available_representations())
+                raise ValueError(
+                    f"Unknown representation '{requested_reps}'. "
+                    f"Available representations: {available}"
+                )
+            rep_func = self._rep_registry[requested_reps]
+            return self._safe_call(rep_func, decimal_places)
 
-        elif requested_reps == "atom_sequences_plusplus":
-            return self._safe_call(
-                self.get_atom_sequences_plusplus,
-                lattice_params=True,
-                decimal_places=decimal_places,
-            )
+        # Handle list of requests
+        results = {}
+        for rep_name in requested_reps:
+            if rep_name not in self._rep_registry:
+                if self.enable_logging:
+                    logger.warning(f"Skipping unknown representation: {rep_name}")
+                results[rep_name] = None
+                continue
+            rep_func = self._rep_registry[rep_name]
+            results[rep_name] = self._safe_call(rep_func, decimal_places)
 
-        elif requested_reps == "zmatrix":
-            return self._safe_call(self.get_zmatrix_rep)
-
-        elif requested_reps == "local_env":
-            return self._safe_call(self.get_local_env_rep, local_env_kwargs=None)
+        return results
