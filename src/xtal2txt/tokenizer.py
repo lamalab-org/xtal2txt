@@ -208,11 +208,33 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
     def get_vocab(self):
         return self.vocab
 
+    @property
+    def vocab_size(self):
+        """Returns the size of the vocabulary."""
+        return len(self.vocab)
+
+    @property
+    def total_vocab_size(self):
+        """Returns the total vocabulary size including added tokens."""
+        return self.vocab_size + len(self.added_tokens_encoder)
+
     def get_special_num_tokens(self, text):
         num_tokenizer = NumTokenizer()
         return num_tokenizer.num_matcher(text)
 
-    def tokenize(self, text):
+    def _tokenize(self, text, **kwargs):
+        """Tokenize a string into a list of tokens.
+
+        This method performs the core tokenization logic without adding special tokens.
+        Use the `tokenize` method for the complete tokenization pipeline.
+
+        Args:
+            text: The input text to tokenize.
+            **kwargs: Additional keyword arguments for compatibility with transformers.
+
+        Returns:
+            List of tokens.
+        """
         if self.special_num_tokens:
             text = self.get_special_num_tokens(text)
 
@@ -223,6 +245,20 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         pattern_str = "|".join(escaped_tokens)
         pattern = re.compile(pattern_str)
         matches = pattern.findall(text)
+
+        return matches
+
+    def tokenize(self, text, **kwargs):
+        """Tokenize a string into a list of tokens with special tokens handling.
+
+        Args:
+            text: The input text to tokenize.
+            **kwargs: Additional keyword arguments for compatibility with transformers.
+
+        Returns:
+            List of tokens including special tokens if configured.
+        """
+        matches = self._tokenize(text, **kwargs)
 
         # Add [CLS] and [SEP] tokens if present in the vocabulary
         if self.cls_token is not None:
@@ -240,6 +276,72 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
             matches += [self.pad_token] * (self.padding_length - len(matches))
 
         return matches
+
+    def build_inputs_with_special_tokens(self, token_ids_0, token_ids_1=None):
+        """Build model inputs from a sequence or a pair of sequences for sequence classification tasks.
+
+        A sequence has the following format:
+        - single sequence: ``[CLS] X [SEP]``
+        - pair of sequences: ``[CLS] A [SEP] B [SEP]``
+
+        Args:
+            token_ids_0: List of token IDs for the first sequence.
+            token_ids_1: Optional list of token IDs for the second sequence.
+
+        Returns:
+            List of input IDs with special tokens added.
+        """
+        if token_ids_1 is None:
+            return [self.cls_token_id] + token_ids_0 + [self.sep_token_id]
+        cls = [self.cls_token_id]
+        sep = [self.sep_token_id]
+        return cls + token_ids_0 + sep + token_ids_1 + sep
+
+    def create_token_type_ids_from_sequences(self, token_ids_0, token_ids_1=None):
+        """Create token type IDs tensor from sequences.
+
+        Token type IDs are binary masks identifying the two types of sequence in the model.
+        For a single sequence: all IDs are 0.
+        For a sequence pair: first sequence IDs are 0, second sequence IDs are 1.
+
+        Args:
+            token_ids_0: List of token IDs for the first sequence.
+            token_ids_1: Optional list of token IDs for the second sequence.
+
+        Returns:
+            List of token type IDs.
+        """
+        sep = [self.sep_token_id]
+        cls = [self.cls_token_id]
+        if token_ids_1 is None:
+            return len(cls + token_ids_0 + sep) * [0]
+        return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
+
+    def get_special_tokens_mask(
+        self, token_ids_0, token_ids_1=None, already_has_special_tokens=False
+    ):
+        """Retrieve sequence ids from a token list that has no special tokens added.
+
+        This method is called when adding special tokens using the tokenizer.
+
+        Args:
+            token_ids_0: List of token IDs for the first sequence.
+            token_ids_1: Optional list of token IDs for the second sequence.
+            already_has_special_tokens: Whether the token list already has special tokens.
+
+        Returns:
+            List of integers in the range [0, 1]: 1 for a special token, 0 for a sequence token.
+        """
+        if already_has_special_tokens:
+            return super().get_special_tokens_mask(
+                token_ids_0=token_ids_0,
+                token_ids_1=token_ids_1,
+                already_has_special_tokens=True,
+            )
+
+        if token_ids_1 is not None:
+            return [1] + ([0] * len(token_ids_0)) + [1] + ([0] * len(token_ids_1)) + [1]
+        return [1] + ([0] * len(token_ids_0)) + [1]
 
     def convert_tokens_to_string(self, tokens):
         """Converts tokens to string."""
@@ -528,7 +630,6 @@ class SmilesTokenizer(Xtal2txtTokenizer):
 class RobocrysTokenizer:
     """Tokenizer for Robocrystallographer. Would be BPE tokenizer.
     trained on the Robocrystallographer dataset.
-    TODO: Implement this tokenizer.
     """
 
     def __init__(self, vocab_file=ROBOCRYS_VOCAB, **kwargs):
