@@ -24,7 +24,7 @@ Tl_str = "18.9 3.7 9.1\n90 105 90\nTl+\n0.50 0.50 0.50\nTl+\n0.00 0.00 0.50\nCr3
 @pytest.mark.parametrize("text_rep_str", [N2_str, Sr_str, In_str, Tl_str])
 def test_get_crystal_llm_rep_struc(text_rep_str: str) -> None:
     decoder = DecodeTextRep(text_rep_str)
-    assert type(decoder.llm_decoder(decoder.text)) == pyStructure
+    assert isinstance(decoder.llm_decoder(decoder.text), pyStructure)
 
 
 @pytest.mark.parametrize(
@@ -38,4 +38,4 @@ def test_get_crystal_llm_rep_struc(text_rep_str: str) -> None:
 )
 def test_llm_matcher(text_rep_str: str, pmg_structure) -> None:
     matcher = MatchRep(text_rep_str, pmg_structure)
-    assert matcher.llm_matcher() == True
+    assert matcher.llm_matcher()

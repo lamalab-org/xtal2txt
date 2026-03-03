@@ -22,13 +22,12 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.chemenv.coordination_environments.coordination_geometries import (
     AllCoordinationGeometries,
 )
+from pymatgen.io.babel import BabelMolAdaptor
 from typing import Tuple, List
 
 strategy = SimplestChemenvStrategy()
 
 lgf = LocalGeometryFinder()
-
-from pymatgen.io.babel import BabelMolAdaptor
 
 
 class LocalEnvAnalyzer:
