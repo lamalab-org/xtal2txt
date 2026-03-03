@@ -632,10 +632,21 @@ class RobocrysTokenizer:
     trained on the Robocrystallographer dataset.
     """
 
-    def __init__(self, vocab_file=ROBOCRYS_VOCAB, **kwargs):
+    def __init__(self, vocab_file=ROBOCRYS_VOCAB, special_tokens=None, **kwargs):
         tokenizer = Tokenizer.from_file(vocab_file)
         wrapped_tokenizer = PreTrainedTokenizerFast(tokenizer_object=tokenizer)
         self._tokenizer = wrapped_tokenizer
+
+        # Add special tokens if provided
+        if special_tokens is not None:
+            self._tokenizer.add_special_tokens(special_tokens)
+
+        # Ensure pad_token is set
+        if self._tokenizer.pad_token is None:
+            if self._tokenizer.eos_token is not None:
+                self._tokenizer.pad_token = self._tokenizer.eos_token
+            else:
+                self._tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
     def tokenize(self, text):
         return self._tokenizer.tokenize(text)
@@ -650,3 +661,30 @@ class RobocrysTokenizer:
         return self._tokenizer.decode(
             token_ids, skip_special_tokens=skip_special_tokens
         )
+
+    def __call__(self, *args, **kwargs):
+        """Make the tokenizer callable."""
+        return self._tokenizer(*args, **kwargs)
+
+    def __len__(self):
+        """Return the vocabulary size."""
+        return len(self._tokenizer)
+
+    @property
+    def vocab_size(self):
+        """Return the vocabulary size."""
+        return len(self._tokenizer)
+
+    @property
+    def model_max_length(self):
+        """Get the model maximum length."""
+        return self._tokenizer.model_max_length
+
+    @model_max_length.setter
+    def model_max_length(self, value):
+        """Set the model maximum length."""
+        self._tokenizer.model_max_length = value
+
+    def __getattr__(self, name):
+        """Delegate attribute access to the wrapped tokenizer."""
+        return getattr(self._tokenizer, name)
