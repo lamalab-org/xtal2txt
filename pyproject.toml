@@ -36,10 +36,10 @@ classifiers = [
 keywords = ["llm", "materials", "chemistry"]
 dependencies = [
     "transformers",
-    "slices==1.4.12",
+    "slices",
     "robocrys",
     "matminer",
-    "keras<3",
+    "keras",
     "pystow",
 ]
 [project.urls]
