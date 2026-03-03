@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.12"]
     timeout-minutes: 30
     defaults:
       run:
@@ -21,20 +21,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      # - uses: pdm-project/setup-pdm@v3
-      #   name: Set up PDM
-      #   with:
-      #     python-version: ${{ matrix.python-version }}
-      #     cache: true
-
       - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
           use-mamba: true
           python-version: ${{ matrix.python-version }}
-          conda-channels: anaconda, conda-forge
+          channels: conda-forge,anaconda
           activate-environment: test
 
       - name: Install dependencies
