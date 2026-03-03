@@ -1,4 +1,9 @@
+import pytest
+
 from xtal2txt.local_env import LocalEnvAnalyzer
+
+# Check if openbabel is available
+openbabel = pytest.importorskip("openbabel", reason="openbabel not installed")
 
 
 def test_structure_to_local_env_string(get_incus2):

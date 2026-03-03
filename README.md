@@ -27,19 +27,31 @@ Package to define, convert, encode and decode crystal structures into text repre
 
 ## 🚀 Installation
 
-
-The most recent release can be installed from
-[PyPI](https://pypi.org/project/xtal2txt/) with:
-
-```shell
-$ pip install xtal2txt
+```bash
+pip install xtal2txt
 ```
 
-
-The most recent code and data can be installed directly from GitHub with:
+**For all features** (local environment analysis):
 
 ```bash
-$ pip install git+https://github.com/lamalab-org/xtal2txt.git
+# Ubuntu/Debian
+sudo apt-get install openbabel libopenbabel-dev libfftw3-dev
+pip install xtal2txt
+
+# macOS
+brew install open-babel fftw
+pip install xtal2txt
+```
+
+**Development:**
+```bash
+git clone https://github.com/lamalab-org/xtal2txt.git
+cd xtal2txt
+
+# Install system dependencies (see above)
+# Then:
+uv sync
+pre-commit install --install-hooks
 ```
 
 

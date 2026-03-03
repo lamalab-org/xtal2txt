@@ -48,7 +48,7 @@ Homepage = "https://github.com/lamalab-org/xtal2txt"
 Issues = "https://github.com/lamalab-org/xtal2txt/issues"
 
 [project.optional-dependencies]
-dev = ['pytest', 'bump-my-version', 'pre-commit']
+dev = ['pytest', 'bump-my-version', 'pre-commit', 'pyxtal']
 docs = [
     "mkdocs",
     "mkdocs-autorefs",
@@ -57,6 +57,9 @@ docs = [
     "mkdocstrings-python",
 ]
 decoder = ["pyxtal"]
+# Note: For full testing capabilities, openbabel must be installed via conda
+# See README.md for installation instructions
+testing = ['pytest', 'pyxtal']
 
 
 [tool.setuptools.packages.find]

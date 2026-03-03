@@ -14,28 +14,29 @@ jobs:
       matrix:
         python-version: ["3.12"]
     timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash -l {0}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Setup Mambaforge
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openbabel libopenbabel-dev libfftw3-dev
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          use-mamba: true
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
           python-version: ${{ matrix.python-version }}
-          channels: conda-forge,anaconda
-          activate-environment: test
 
       - name: Install dependencies
         run: |
-          mamba install -c conda-forge openbabel fftw -y
-          pip install -e ".[dev]"
-          pip install pyxtal
+          uv sync
+          uv pip install pyxtal
 
       - name: Test
-        run: pytest tests
+        run: uv run pytest tests

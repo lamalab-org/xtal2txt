@@ -218,6 +218,13 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
         """Returns the total vocabulary size including added tokens."""
         return self.vocab_size + len(self.added_tokens_encoder)
 
+    def __setattr__(self, name, value):
+        """Override setattr to prevent total_vocab_size from being stored."""
+        if name == "total_vocab_size":
+            # Ignore assignments to total_vocab_size - it's computed dynamically
+            return
+        super().__setattr__(name, value)
+
     def get_special_num_tokens(self, text):
         num_tokenizer = NumTokenizer()
         return num_tokenizer.num_matcher(text)
