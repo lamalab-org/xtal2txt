@@ -640,13 +640,22 @@ class RobocrysTokenizer:
     """
 
     def __init__(self, vocab_file=ROBOCRYS_VOCAB, special_tokens=None, **kwargs):
-        tokenizer = Tokenizer.from_file(vocab_file)
-        wrapped_tokenizer = PreTrainedTokenizerFast(tokenizer_object=tokenizer)
-        self._tokenizer = wrapped_tokenizer
+         tokenizer = Tokenizer.from_file(vocab_file)
+         wrapped_tokenizer = PreTrainedTokenizerFast(tokenizer_object=tokenizer)
+         self._tokenizer = wrapped_tokenizer
 
-        # Add special tokens if provided
-        if special_tokens is not None:
-            self._tokenizer.add_special_tokens(special_tokens)
+         # Add special tokens if provided
+         if special_tokens is not None:
+             # Normalize special_tokens so both list/tuple and dict are supported
+             if isinstance(special_tokens, (list, tuple)):
+                 special_tokens = {"additional_special_tokens": list(special_tokens)}
+             elif not isinstance(special_tokens, dict):
+                 raise TypeError(
+                     "special_tokens must be a dict or a list/tuple of strings; "
+                     f"got {type(special_tokens).__name__}"
+                 )
+
+             self._tokenizer.add_special_tokens(special_tokens)
 
         # Ensure pad_token is set
         if self._tokenizer.pad_token is None:
