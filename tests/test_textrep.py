@@ -52,7 +52,9 @@ def test_get_lattice_parameters() -> None:
 
 
 def test_get_slices() -> None:
-    expected_output = "N N N N 0 1 - o o 0 1 - + o 0 1 o o o 0 1 o + o 0 2 o + o 0 2 o + + 0 2 + + o 0 2 + + + 0 3 o o - 0 3 o o o 0 3 o + - 0 3 o + o 1 3 o o - 1 3 o o o 1 3 + o - 1 3 + o o 1 2 + o o 1 2 + o + 1 2 + + o 1 2 + + + 2 3 - - - 2 3 - o - 2 3 o - - 2 3 o o - "
+    # Note: SLICES 2.x includes metadata prefix (o w b DOD c ODD d OOO o)
+    # SLICES 1.x format was: "N N N N 0 1 - o o..." (no metadata prefix)
+    expected_output = "o w b DOD c ODD d OOO o N N N N 0 1 -oo 0 1 -+o 0 1 ooo 0 1 o+o 0 2 o+o 0 2 o++ 0 2 ++o 0 2 +++ 0 3 oo- 0 3 ooo 0 3 o+- 0 3 o+o 1 3 oo- 1 3 ooo 1 3 +o- 1 3 +oo 1 2 +oo 1 2 +o+ 1 2 ++o 1 2 +++ 2 3 --- 2 3 -o- 2 3 o-- 2 3 oo- "
     assert N2.get_slices() == expected_output
 
 
@@ -63,12 +65,6 @@ def test_get_crystal_llm_rep() -> None:
 
 def test_robocrys_for_cif_format() -> None:
     assert srtio3_p1.get_robocrys_rep() == srtio3_symmetrized.get_robocrys_rep()
-
-
-# TODO: check N2 robocrys represetation
-# def test_get_robocrys_rep() -> None:
-#     excepted_output = "N2 is Indium-like structured and crystallizes in the cubic P2_13 space group. The structure is zero-dimensional and consists of four ammonia atoms. N(1) is bonded in a 1-coordinate geometry to  atoms."
-#     assert N2.get_robocrys_rep() == excepted_output
 
 
 def test_get_robocrys_rep() -> None:

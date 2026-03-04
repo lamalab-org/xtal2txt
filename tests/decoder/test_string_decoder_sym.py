@@ -26,7 +26,7 @@ Tl_str = "data_TlCr5Se8\n_symmetry_space_group_name_H-M   C2/m\n_cell_length_a  
 @pytest.mark.parametrize("text_rep_str", [N2_str, Sr_str, In_str, Tl_str])
 def test_cif_string_decoder_sym(text_rep_str: str) -> None:
     decoder = DecodeTextRep(text_rep_str)
-    assert type(decoder.cif_string_decoder_sym(decoder.text)) == pyStructure
+    assert isinstance(decoder.cif_string_decoder_sym(decoder.text), pyStructure)
 
 
 @pytest.mark.parametrize(
@@ -40,7 +40,7 @@ def test_cif_string_decoder_sym(text_rep_str: str) -> None:
 )
 def test_cif_string_matcher_sym(text_rep_str: str, pmg_structure) -> None:
     matcher = MatchRep(text_rep_str, pmg_structure)
-    assert matcher.cif_string_matcher_sym() == True
+    assert matcher.cif_string_matcher_sym()
 
 
 # def test_cif_string_matcher_p1() -> None:

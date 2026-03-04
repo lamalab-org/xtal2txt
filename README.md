@@ -23,23 +23,37 @@
 Package to define, convert, encode and decode crystal structures into text representations.
 `xtal2txt` is an important part of our [MatText](https://github.com/lamalab-org/MatText) framework.
 
+**Note on SLICES:** This version uses SLICES 2.x, which includes a metadata prefix in the output format (e.g., `o w b DOD c ODD d OOO o`). SLICES 1.x did not include this metadata prefix.
+
 ## 💪 Getting Started
 
 ## 🚀 Installation
 
-
-The most recent release can be installed from
-[PyPI](https://pypi.org/project/xtal2txt/) with:
-
-```shell
-$ pip install xtal2txt
-```
-
-
-The most recent code and data can be installed directly from GitHub with:
+**Requirements:** Python 3.9-3.12 (Python 3.9 recommended for SLICES support)
 
 ```bash
-$ pip install git+https://github.com/lamalab-org/xtal2txt.git
+pip install xtal2txt
+```
+
+**For all features** (local environment analysis):
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install openbabel libopenbabel-dev libfftw3-dev
+pip install xtal2txt openbabel-wheel
+
+# macOS
+brew install open-babel fftw
+pip install xtal2txt openbabel-wheel
+```
+
+**Development:**
+```bash
+git clone https://github.com/lamalab-org/xtal2txt.git
+cd xtal2txt
+
+uv sync --extra dev
+pre-commit install --install-hooks
 ```
 
 
@@ -53,7 +67,6 @@ representations. Below is an example of its usage:
 from xtal2txt.core import TextRep
 from pymatgen.core import Structure
 
-
 # Load structure from a CIF file
 from_file = "InCuS2_p1.cif"
 structure = Structure.from_file(from_file, "cif")
@@ -62,12 +75,12 @@ structure = Structure.from_file(from_file, "cif")
 text_rep = TextRep.from_input(structure)
 
 requested_reps = [
-        "cif_p1",
-        "slices",
-        "atom_sequences",
-        "atom_sequences_plusplus",
-        "crystal_text_llm",
-        "zmatrix"
+    "cif_p1",
+    "slices",
+    "atom_sequences",
+    "atom_sequences_plusplus",
+    "crystal_text_llm",
+    "zmatrix",
 ]
 
 # Get the requested text representations
@@ -78,18 +91,15 @@ requested_text_reps = text_rep.get_requested_text_reps(requested_reps)
 ## Using xtal2txt Tokenizers
 
 By default, the tokenizer is initialized with `\[CLS\]` and `\[SEP\]`
-tokens. For an example, see the `SliceTokenizer` usage: 
+tokens. For an example, see the `SliceTokenizer` usage:
 
 ``` python
 from xtal2txt.tokenizer import SliceTokenizer
 
 tokenizer = SliceTokenizer(
-                model_max_length=512, 
-                truncation=True, 
-                padding="max_length", 
-                max_length=512
-            )
-print(tokenizer.cls_token) # returns [CLS]
+    model_max_length=512, truncation=True, padding="max_length", max_length=512
+)
+print(tokenizer.cls_token)  # returns [CLS]
 ```
 
 You can access the `\[CLS\]` token using the [cls_token]{.title-ref}
@@ -113,12 +123,12 @@ Initialization without `\[CLS\]` and `\[SEP\]` tokens:
 
 ``` python
 tokenizer = SliceTokenizer(
-                model_max_length=512, 
-                special_tokens={}, 
-                truncation=True,
-                padding="max_length", 
-                max_length=512
-            )
+    model_max_length=512,
+    special_tokens={},
+    truncation=True,
+    padding="max_length",
+    max_length=512,
+)
 ```
 
 All `Xtal2txtTokenizer` instances inherit from
@@ -133,13 +143,13 @@ implemented by
 
 ``` python
 tokenizer = SliceTokenizer(
-                special_num_token=True,
-                model_max_length=512, 
-                special_tokens={}, 
-                truncation=True,
-                padding="max_length", 
-                max_length=512
-            )
+    special_num_token=True,
+    model_max_length=512,
+    special_tokens={},
+    truncation=True,
+    padding="max_length",
+    max_length=512,
+)
 ```
 
 ## 👐 Contributing

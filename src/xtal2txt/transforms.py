@@ -75,7 +75,9 @@ class TransformationCallback:
         indices = random.sample(
             range(len(structure.sites)), min(max_indices, len(structure.sites))
         )  # ensures that we select at most max_indices from the available sites
-        structure.translate_sites(indices=indices, vector=vector, frac_coords=True, **kwargs)
+        structure.translate_sites(
+            indices=indices, vector=vector, frac_coords=True, **kwargs
+        )
         return structure
 
     @staticmethod
