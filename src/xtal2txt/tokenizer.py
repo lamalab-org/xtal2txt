@@ -297,7 +297,15 @@ class Xtal2txtTokenizer(PreTrainedTokenizer):
 
         Returns:
             List of input IDs with special tokens added.
+
+        Raises:
+            ValueError: If CLS or SEP token IDs are not set.
         """
+        if self.cls_token_id is None or self.sep_token_id is None:
+            raise ValueError(
+                "CLS and SEP token IDs must be set before calling build_inputs_with_special_tokens."
+            )
+
         if token_ids_1 is None:
             return [self.cls_token_id] + token_ids_0 + [self.sep_token_id]
         cls = [self.cls_token_id]

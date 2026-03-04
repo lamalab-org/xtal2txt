@@ -4,7 +4,7 @@ import re
 from collections import Counter
 from enum import Enum
 from pathlib import Path
-from typing import Union, Callable, Any, Optional, Dict
+from typing import Union, Callable, Any, Optional, Dict, List
 
 from pymatgen.core import Structure
 from pymatgen.core.structure import Molecule
@@ -189,13 +189,16 @@ class TextRep:
             transform_func = getattr(TransformationCallback, transformation)
             self.structure = transform_func(self.structure, **params)
 
-    def _safe_call(self, func: Callable, *args, **kwargs) -> Optional[Any]:
+    def _safe_call(
+        self, func: Callable, *args, rep_name: Optional[str] = None, **kwargs
+    ) -> Optional[Any]:
         """
         Safely call a function and return None if it fails.
 
         Args:
             func: Function to call.
             *args: Positional arguments to pass to func.
+            rep_name: Optional representation name for better error messages.
             **kwargs: Keyword arguments to pass to func.
 
         Returns:
@@ -205,9 +208,8 @@ class TextRep:
             return func(*args, **kwargs)
         except Exception as e:
             if self.enable_logging:
-                logger.warning(
-                    f"Failed to generate representation using {func.__name__}: {e}"
-                )
+                name = rep_name if rep_name else func.__name__
+                logger.warning(f"Failed to generate representation '{name}': {e}")
             return None
 
     @staticmethod
@@ -584,52 +586,67 @@ class TextRep:
 
         # Generate all registered representations
         for rep_name, rep_func in self._rep_registry.items():
-            results[rep_name] = self._safe_call(rep_func, decimal_places)
+            results[rep_name] = self._safe_call(
+                rep_func, decimal_places, rep_name=rep_name
+            )
 
         # Add deprecated/unimplemented representations if requested
         if include_none:
             results["cif_bonding"] = None
-            results["wycoff_rep"] = None
+            results["wyckoff_rep"] = None
 
         return results
 
     def get_requested_text_reps(
-        self, requested_reps: Union[str, list[str]], decimal_places: int = 2
+        self,
+        requested_reps: Union[str, List[str]],
+        decimal_places: int = 2,
+        strict: bool = False,
     ) -> Union[Optional[str], Dict[str, Optional[str]]]:
         """
         Returns the requested Text representation(s) of the crystal structure.
 
         Args:
-            requested_reps: Single representation name or list of representation names.
-            decimal_places: The number of decimal places to round to.
+            requested_reps: A single representation name or an iterable of names to generate.
+                Accepts strings, lists, tuples, or any iterable of `str`.
+            decimal_places: Number of decimal places to round to.
+            strict: If True, raise `ValueError` when an unknown representation is requested.
+                If False (default), unknown representations are logged (if logging is enabled)
+                and `None` is returned for those entries, maintaining backward compatibility.
 
         Returns:
             If requested_reps is a string: the representation value (or None if failed).
-            If requested_reps is a list: dictionary mapping names to values.
+            If requested_reps is a list/iterable: dictionary mapping names to values.
 
         Raises:
-            ValueError: If requested representation is not available.
+            ValueError: If strict=True and an unknown representation is requested.
         """
-        # Handle single string request (backward compatibility)
-        if isinstance(requested_reps, str):
-            if requested_reps not in self._rep_registry:
-                available = ", ".join(self.get_available_representations())
-                raise ValueError(
-                    f"Unknown representation '{requested_reps}'. "
-                    f"Available representations: {available}"
-                )
-            rep_func = self._rep_registry[requested_reps]
-            return self._safe_call(rep_func, decimal_places)
+        # Normalize to an iterable while preserving the return type for single-string input.
+        is_single = isinstance(requested_reps, str)
+        reps_iter = [requested_reps] if is_single else list(requested_reps)
 
-        # Handle list of requests
-        results = {}
-        for rep_name in requested_reps:
+        results = []
+        for rep_name in reps_iter:
             if rep_name not in self._rep_registry:
+                if strict:
+                    available = ", ".join(self.get_available_representations())
+                    raise ValueError(
+                        f"Unknown representation '{rep_name}'. "
+                        f"Available representations: {available}"
+                    )
                 if self.enable_logging:
                     logger.warning(f"Skipping unknown representation: {rep_name}")
-                results[rep_name] = None
+                results.append(None)
                 continue
-            rep_func = self._rep_registry[rep_name]
-            results[rep_name] = self._safe_call(rep_func, decimal_places)
 
-        return results
+            rep_func = self._rep_registry[rep_name]
+            results.append(self._safe_call(rep_func, decimal_places, rep_name=rep_name))
+
+        # Preserve existing behavior: single-string input returns a single value,
+        # list/iterable input returns a dict.
+        if is_single:
+            # For non-strict mode, unknown reps may have produced a None result.
+            return results[0] if results else None
+
+        # Return as dict for list inputs
+        return dict(zip(reps_iter, results))

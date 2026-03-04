@@ -215,7 +215,7 @@ class MatchRep:
 
         # output_struct = self.wyckoff_decoder(input, lattice_params)
         output_struct = DecodeTextRep(self.text).wyckoff_decoder(
-            self.text, lattice_params=True
+            self.text, lattice_params=lattice_params
         )
 
         return StructureMatcher(
