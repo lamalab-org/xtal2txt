@@ -23,9 +23,13 @@
 Package to define, convert, encode and decode crystal structures into text representations.
 `xtal2txt` is an important part of our [MatText](https://github.com/lamalab-org/MatText) framework.
 
+**Note on SLICES:** This version uses SLICES 2.x, which includes a metadata prefix in the output format (e.g., `o w b DOD c ODD d OOO o`). SLICES 1.x did not include this metadata prefix.
+
 ## 💪 Getting Started
 
 ## 🚀 Installation
+
+**Requirements:** Python 3.9-3.12 (Python 3.9 recommended for SLICES support)
 
 ```bash
 pip install xtal2txt
@@ -36,11 +40,11 @@ pip install xtal2txt
 ```bash
 # Ubuntu/Debian
 sudo apt-get install openbabel libopenbabel-dev libfftw3-dev
-pip install xtal2txt
+pip install xtal2txt openbabel-wheel
 
 # macOS
 brew install open-babel fftw
-pip install xtal2txt
+pip install xtal2txt openbabel-wheel
 ```
 
 **Development:**
@@ -48,9 +52,7 @@ pip install xtal2txt
 git clone https://github.com/lamalab-org/xtal2txt.git
 cd xtal2txt
 
-# Install system dependencies (see above)
-# Then:
-uv sync
+uv sync --extra dev
 pre-commit install --install-hooks
 ```
 

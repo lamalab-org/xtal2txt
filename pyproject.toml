@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xtal2txt"
-version = "0.1.0"
+version = "0.2.0"
 description = "Package to encode and decode crystal structures into text representations"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -18,7 +18,7 @@ maintainers = [
     { name = "Nawaf Alampara", email = "nawaf.alampara@uni-jena.de" },
     { name = "Kevin Maik Jablonka", email = "mail@kjablonka.com" },
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9,<3.13"
 classifiers = [
     "Development Status :: 1 - Planning",
     "Environment :: Console",
@@ -38,17 +38,18 @@ keywords = ["llm", "materials", "chemistry"]
 dependencies = [
     "transformers",
     "slices",
-    "robocrys",
+    "robocrys>=0.2.9,<0.2.13",
     "matminer",
-    "keras",
+    "keras<3",  # m3gnet requires Keras 2.x for model loading
     "pystow",
+    "ase<3.23",  # Required for SLICES/m3gnet (ExpCellFilter compatibility)
 ]
 [project.urls]
 Homepage = "https://github.com/lamalab-org/xtal2txt"
 Issues = "https://github.com/lamalab-org/xtal2txt/issues"
 
 [project.optional-dependencies]
-dev = ['pytest', 'bump-my-version', 'pre-commit', 'pyxtal']
+dev = ['pytest', 'bump-my-version', 'pre-commit', 'pyxtal', 'openbabel-wheel', 'setuptools<70']
 docs = [
     "mkdocs",
     "mkdocs-autorefs",
@@ -57,9 +58,7 @@ docs = [
     "mkdocstrings-python",
 ]
 decoder = ["pyxtal"]
-# Note: For full testing capabilities, openbabel must be installed via conda
-# See README.md for installation instructions
-testing = ['pytest', 'pyxtal']
+testing = ['pytest', 'pyxtal', 'openbabel-wheel']
 
 
 [tool.setuptools.packages.find]
@@ -90,7 +89,7 @@ exclude_lines = [
 
 
 [tool.bumpversion]
-current_version = "0.1.0"
+current_version = "0.2.0"
 commit = true
 commit_args = "--no-verify --allow-empty"
 tag = true

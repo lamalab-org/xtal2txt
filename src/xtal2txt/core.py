@@ -4,7 +4,7 @@ import re
 from collections import Counter
 from enum import Enum
 from pathlib import Path
-from typing import Union, Callable, Any
+from typing import Union, Callable, Any, Optional, Dict
 
 from pymatgen.core import Structure
 from pymatgen.core.structure import Molecule
@@ -189,7 +189,7 @@ class TextRep:
             transform_func = getattr(TransformationCallback, transformation)
             self.structure = transform_func(self.structure, **params)
 
-    def _safe_call(self, func: Callable, *args, **kwargs) -> Any | None:
+    def _safe_call(self, func: Callable, *args, **kwargs) -> Optional[Any]:
         """
         Safely call a function and return None if it fails.
 
@@ -339,7 +339,7 @@ class TextRep:
             composition = composition_string.replace(" ", "")
         return composition
 
-    def get_local_env_rep(self, local_env_kwargs: dict | None = None) -> str:
+    def get_local_env_rep(self, local_env_kwargs: Optional[dict] = None) -> str:
         """
         Get the local environment representation of the crystal structure.
 
@@ -569,7 +569,7 @@ class TextRep:
 
     def get_all_text_reps(
         self, decimal_places: int = 2, include_none: bool = False
-    ) -> dict[str, str | None]:
+    ) -> Dict[str, Optional[str]]:
         """
         Returns all the Text representations of the crystal structure in a dictionary.
 
@@ -595,7 +595,7 @@ class TextRep:
 
     def get_requested_text_reps(
         self, requested_reps: Union[str, list[str]], decimal_places: int = 2
-    ) -> Union[str | None, dict[str, str | None]]:
+    ) -> Union[Optional[str], Dict[str, Optional[str]]]:
         """
         Returns the requested Text representation(s) of the crystal structure.
 

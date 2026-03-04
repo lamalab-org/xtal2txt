@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.9"]
     timeout-minutes: 30
     steps:
       - name: Check out repository
@@ -34,9 +34,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: |
-          uv sync
-          uv pip install pyxtal
+        run: uv sync --extra dev
 
       - name: Test
         run: uv run pytest tests
